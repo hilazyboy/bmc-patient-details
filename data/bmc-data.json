@@ -1,0 +1,602 @@
+{
+  "exportedAt": "2026-07-07T20:32:42.922Z",
+  "rooms": {
+    "BMC": {
+      "Zone A": {
+        "Basement": [
+          "AB01",
+          "AB02",
+          "AB03",
+          "AB04",
+          "AB05",
+          "AB06",
+          "A ISO"
+        ],
+        "Ground": [
+          "AG01",
+          "AG02",
+          "AG03",
+          "AG04",
+          "AG05",
+          "AG06",
+          "AG07",
+          "A ISO"
+        ],
+        "1st Floor": [
+          "A101",
+          "A102",
+          "A103",
+          "A104",
+          "A105",
+          "A106",
+          "A107",
+          "A108",
+          "A ISO"
+        ],
+        "2nd Floor": [
+          "A201",
+          "A202",
+          "A203",
+          "A204",
+          "A205",
+          "A206",
+          "A207",
+          "A208",
+          "A ISO"
+        ],
+        "3rd Floor": [
+          "A301",
+          "A302",
+          "A303",
+          "A304",
+          "A305",
+          "A306",
+          "A307",
+          "A308",
+          "A ISO"
+        ],
+        "4th Floor": [
+          "A401",
+          "A402",
+          "A403",
+          "A404",
+          "A405",
+          "A406",
+          "A407",
+          "A408",
+          "A ISO"
+        ],
+        "5th Floor": [
+          "A501",
+          "A502",
+          "A503",
+          "A504",
+          "A505",
+          "A506",
+          "A507",
+          "A508",
+          "A ISO"
+        ],
+        "6th Floor": [
+          "A601",
+          "A602",
+          "A603",
+          "A604",
+          "A605",
+          "A606",
+          "A607",
+          "A608",
+          "A ISO"
+        ],
+        "7th Floor": [
+          "A701",
+          "A702",
+          "A703",
+          "A704",
+          "A705",
+          "A706",
+          "A707",
+          "A708",
+          "A ISO"
+        ],
+        "8th Floor": [
+          "A801",
+          "A802",
+          "A803",
+          "A804",
+          "A805",
+          "A806",
+          "A807",
+          "A808",
+          "A ISO"
+        ]
+      },
+      "Zone B": {
+        "Basement": [
+          "BB01",
+          "BB02",
+          "BB03",
+          "BB04",
+          "BB05",
+          "BB06",
+          "B ISO"
+        ],
+        "Ground": [
+          "BG01",
+          "BG02",
+          "BG03",
+          "BG04",
+          "BG05",
+          "BG06",
+          "BG07",
+          "B ISO"
+        ],
+        "1st Floor": [
+          "B101",
+          "B102",
+          "B103",
+          "B104",
+          "B105",
+          "B106",
+          "B107",
+          "B108",
+          "B ISO"
+        ],
+        "2nd Floor": [
+          "B201",
+          "B202",
+          "B203",
+          "B204",
+          "B205",
+          "B206",
+          "B207",
+          "B208",
+          "B ISO"
+        ],
+        "3rd Floor": [
+          "B301",
+          "B302",
+          "B303",
+          "B304",
+          "B305",
+          "B306",
+          "B307",
+          "B308",
+          "B ISO"
+        ],
+        "4th Floor": [
+          "B401",
+          "B402",
+          "B403",
+          "B404",
+          "B405",
+          "B406",
+          "B407",
+          "B408",
+          "B ISO"
+        ],
+        "5th Floor": [
+          "B501",
+          "B502",
+          "B503",
+          "B504",
+          "B505",
+          "B506",
+          "B507",
+          "B508",
+          "B ISO"
+        ],
+        "6th Floor": [
+          "B601",
+          "B602",
+          "B603",
+          "B604",
+          "B605",
+          "B606",
+          "B607",
+          "B608",
+          "B ISO"
+        ],
+        "7th Floor": [
+          "B701",
+          "B702",
+          "B703",
+          "B704",
+          "B705",
+          "B706",
+          "B707",
+          "B708",
+          "B ISO"
+        ],
+        "8th Floor": [
+          "B801",
+          "B802",
+          "B803",
+          "B804",
+          "B805",
+          "B806",
+          "B807",
+          "B808",
+          "B ISO"
+        ]
+      },
+      "Zone C": {
+        "Basement": [
+          "CB01",
+          "CB02",
+          "CB03",
+          "CB04",
+          "CB05",
+          "CB06",
+          "C ISO"
+        ],
+        "Ground": [
+          "CG01",
+          "CG02",
+          "CG03",
+          "CG04",
+          "CG05",
+          "CG06",
+          "CG07",
+          "C ISO"
+        ],
+        "1st Floor": [
+          "C101",
+          "C102",
+          "C103",
+          "C104",
+          "C105",
+          "C106",
+          "C107",
+          "C108",
+          "C ISO"
+        ],
+        "2nd Floor": [
+          "C201",
+          "C202",
+          "C203",
+          "C204",
+          "C205",
+          "C206",
+          "C207",
+          "C208",
+          "C ISO"
+        ],
+        "3rd Floor": [
+          "C301",
+          "C302",
+          "C303",
+          "C304",
+          "C305",
+          "C306",
+          "C307",
+          "C308",
+          "C ISO"
+        ],
+        "4th Floor": [
+          "C401",
+          "C402",
+          "C403",
+          "C404",
+          "C405",
+          "C406",
+          "C407",
+          "C408",
+          "C ISO"
+        ],
+        "5th Floor": [
+          "C501",
+          "C502",
+          "C503",
+          "C504",
+          "C505",
+          "C506",
+          "C507",
+          "C508",
+          "C ISO"
+        ],
+        "6th Floor": [
+          "C601",
+          "C602",
+          "C603",
+          "C604",
+          "C605",
+          "C606",
+          "C607",
+          "C608",
+          "C ISO"
+        ],
+        "7th Floor": [
+          "C701",
+          "C702",
+          "C703",
+          "C704",
+          "C705",
+          "C706",
+          "C707",
+          "C708",
+          "C ISO"
+        ],
+        "8th Floor": [
+          "C801",
+          "C802",
+          "C803",
+          "C804",
+          "C805",
+          "C806",
+          "C807",
+          "C808",
+          "C ISO"
+        ]
+      },
+      "Zone D": {
+        "Basement": [
+          "DB01",
+          "DB02",
+          "DB03",
+          "DB04",
+          "DB05",
+          "DB06",
+          "D ISO"
+        ],
+        "Ground": [
+          "DG01",
+          "DG02",
+          "DG03",
+          "DG04",
+          "DG05",
+          "DG06",
+          "DG07",
+          "D ISO"
+        ],
+        "1st Floor": [
+          "D101",
+          "D102",
+          "D103",
+          "D104",
+          "D105",
+          "D106",
+          "D107",
+          "D108",
+          "D ISO"
+        ],
+        "2nd Floor": [
+          "D201",
+          "D202",
+          "D203",
+          "D204",
+          "D205",
+          "D206",
+          "D207",
+          "D208",
+          "D ISO"
+        ],
+        "3rd Floor": [
+          "D301",
+          "D302",
+          "D303",
+          "D304",
+          "D305",
+          "D306",
+          "D307",
+          "D308",
+          "D ISO"
+        ],
+        "4th Floor": [
+          "D401",
+          "D402",
+          "D403",
+          "D404",
+          "D405",
+          "D406",
+          "D407",
+          "D408",
+          "D409",
+          "iso"
+        ],
+        "5th Floor": [
+          "D501",
+          "D502",
+          "D503",
+          "D504",
+          "D505",
+          "D506",
+          "D507",
+          "D508",
+          "D ISO"
+        ],
+        "6th Floor": [
+          "D601",
+          "D602",
+          "D603",
+          "D604",
+          "D605",
+          "D606",
+          "D607",
+          "D608",
+          "D609",
+          "iso"
+        ],
+        "7th Floor": [
+          "D701",
+          "D702",
+          "D703",
+          "D704",
+          "D705",
+          "D706",
+          "D707",
+          "D708",
+          "D ISO"
+        ],
+        "8th Floor": [
+          "D801",
+          "D802",
+          "D803",
+          "D804",
+          "D805",
+          "D806",
+          "D807",
+          "D808",
+          "D ISO"
+        ]
+      }
+    },
+    "BCI": {
+      "BCI": {
+        "Ground": [
+          "BCI-B01",
+          "BCI-B02",
+          "BCI-B03",
+          "BCI-B04",
+          "BCI-B05",
+          "BCI-B06",
+          "BCI-B07",
+          "BCI-B08",
+          "BCI ISO"
+        ],
+        "1st Floor": [
+          "BCI-G01",
+          "BCI-G02",
+          "BCI-G03",
+          "BCI-G04",
+          "BCI-G05",
+          "BCI-G06",
+          "BCI-G07",
+          "BCI-G08",
+          "BCI-G09",
+          "BCI-G10",
+          "BCI ISO"
+        ],
+        "2nd Floor": [
+          "BCI-101",
+          "BCI-102",
+          "BCI-103",
+          "BCI-104",
+          "BCI-105",
+          "BCI-106",
+          "BCI-107",
+          "BCI-108",
+          "BCI-109",
+          "BCI-110",
+          "BCI ISO"
+        ],
+        "3rd Floor": [
+          "BCI-201",
+          "BCI-202",
+          "BCI-203",
+          "BCI-204",
+          "BCI-205",
+          "BCI-206",
+          "BCI-207",
+          "BCI-208",
+          "BCI-209",
+          "BCI-210",
+          "BCI ISO"
+        ],
+        "4th Floor": [
+          "BCI-301",
+          "BCI-302",
+          "BCI-303",
+          "BCI-304",
+          "BCI-305",
+          "BCI-306",
+          "BCI-307",
+          "BCI-308",
+          "BCI-309",
+          "BCI-310",
+          "BCI ISO"
+        ]
+      }
+    },
+    "LTC": {
+      "LTC": {
+        "Ground": [
+          "LTC-B01",
+          "LTC-B02",
+          "LTC-B03",
+          "LTC-B04",
+          "LTC-B05",
+          "LTC-B06",
+          "LTC-B07",
+          "LTC-B08",
+          "LTC ISO"
+        ],
+        "1st Floor": [
+          "LTC-G01",
+          "LTC-G02",
+          "LTC-G03",
+          "LTC-G04",
+          "LTC-G05",
+          "LTC-G06",
+          "LTC-G07",
+          "LTC-G08",
+          "LTC-G09",
+          "LTC-G10",
+          "LTC ISO"
+        ],
+        "2nd Floor": [
+          "LTC-101",
+          "LTC-102",
+          "LTC-103",
+          "LTC-104",
+          "LTC-105",
+          "LTC-106",
+          "LTC-107",
+          "LTC-108",
+          "LTC-109",
+          "LTC-110",
+          "LTC ISO"
+        ],
+        "3rd Floor": [
+          "LTC-201",
+          "LTC-202",
+          "LTC-203",
+          "LTC-204",
+          "LTC-205",
+          "LTC-206",
+          "LTC-207",
+          "LTC-208",
+          "LTC-209",
+          "LTC-210",
+          "LTC ISO"
+        ],
+        "4th Floor": [
+          "LTC-301",
+          "LTC-302",
+          "LTC-303",
+          "LTC-304",
+          "LTC-305",
+          "LTC-306",
+          "LTC-307",
+          "LTC-308",
+          "LTC-309",
+          "LTC-310",
+          "LTC ISO"
+        ]
+      }
+    }
+  },
+  "patients": {
+    "BMC|Zone D|4th Floor|D401": "M",
+    "BMC|Zone D|4th Floor|D402": "F",
+    "BMC|Zone D|4th Floor|D404": "VIPF",
+    "BMC|Zone D|4th Floor|D405": "PM",
+    "BMC|Zone D|4th Floor|D406": "VVIPF",
+    "BMC|Zone D|6th Floor|D601": "F",
+    "BMC|Zone D|6th Floor|D602": "F",
+    "BMC|Zone D|6th Floor|D603": "F",
+    "BMC|Zone D|6th Floor|D604": "PM",
+    "BMC|Zone D|6th Floor|D605": "F",
+    "BMC|Zone D|6th Floor|D606": "F",
+    "BMC|Zone D|6th Floor|D607": "M",
+    "BMC|Zone D|6th Floor|D608": "M",
+    "BMC|Zone D|6th Floor|D609": "F",
+    "BMC|Zone D|6th Floor|iso": "F",
+    "BMC|Zone D|4th Floor|D403": "V",
+    "BMC|Zone D|Basement|DB03": "PF",
+    "BMC|Zone D|Basement|DB05": "PM",
+    "BMC|Zone D|Basement|DB04": "PF",
+    "BMC|Zone D|4th Floor|D407": "MSNF"
+  },
+  "notes": {}
+}
