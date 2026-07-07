@@ -1,0 +1,2365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BMC Patient Status</title>
+
+<!-- PWA Meta Tags -->
+<meta name="application-name" content="BMC Patient Status">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BMC Status">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0f1e">
+<meta name="description" content="BMC Burjeel Medical City Patient Status Tracker">
+
+<!-- PWA Manifest (inline) -->
+<link rel="manifest" href="data:application/json;charset=utf-8,%7B%22name%22%3A%22BMC%20Patient%20Status%22%2C%22short_name%22%3A%22BMC%20Status%22%2C%22description%22%3A%22Burjeel%20Medical%20City%20Patient%20Tracker%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230a0f1e%22%2C%22theme_color%22%3A%22%230a0f1e%22%2C%22orientation%22%3A%22portrait%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk%2BM9QDwADhgGAWjR9awAAAABJRU5ErkJggg%3D%3D%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
+
+<!-- Apple Touch Icon (emoji fallback) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230ea5e9'/><text y='.9em' font-size='70' x='10'>🏥</text></svg>">
+
+<!-- Inline fonts for offline use — fallback to system fonts if no internet -->
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+</style>
+
+<style>
+  :root{
+    --bg:#0a0f1e;--surface:#111827;--surface2:#1a2235;--border:#1e2d45;
+    --accent:#0ea5e9;--accent2:#38bdf8;--text:#f1f5f9;--muted:#64748b;
+    --male:#3b82f6;--female:#ec4899;--vacant:#334155;--amber:#f59e0b;
+    --bmc:#0ea5e9;--bci:#8b5cf6;--ltc:#10b981;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+  /* INSTALL BANNER */
+  #installBanner{display:none;position:fixed;bottom:0;left:0;right:0;z-index:999;background:var(--surface);border-top:1px solid var(--accent);padding:14px 16px;align-items:center;gap:12px;box-shadow:0 -4px 24px rgba(0,0,0,.4);}
+  .install-text{flex:1;font-size:13px;color:var(--text);line-height:1.4;}
+  .install-text strong{color:var(--accent);display:block;margin-bottom:2px;}
+  .btn-install{background:var(--accent);border:none;border-radius:10px;color:white;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
+  .btn-dismiss{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px;}
+
+
+  #loginScreen{min-height:100vh;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 50% 30%,#0c2240 0%,#0a0f1e 65%);overflow:hidden;}
+
+  /* RADAR / SECURITY ANIMATION */
+  .radar-bg{position:absolute;top:50%;left:50%;width:340px;height:340px;transform:translate(-50%,-50%);pointer-events:none;}
+  .radar-ring{position:absolute;top:50%;left:50%;border:1px solid rgba(14,165,233,.18);border-radius:50%;transform:translate(-50%,-50%);}
+  .radar-ring.r1{width:120px;height:120px;}
+  .radar-ring.r2{width:220px;height:220px;}
+  .radar-ring.r3{width:320px;height:320px;}
+  .radar-sweep{position:absolute;top:50%;left:50%;width:170px;height:170px;transform-origin:0 0;background:conic-gradient(from 0deg, rgba(14,165,233,.35), transparent 35%);border-radius:50% 0 0 0;animation:radarSpin 4s linear infinite;}
+  @keyframes radarSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+  .radar-dot{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--accent2);box-shadow:0 0 8px var(--accent2);animation:dotBlip 3s ease-in-out infinite;}
+  .radar-dot.d1{top:38%;left:62%;animation-delay:.3s;}
+  .radar-dot.d2{top:68%;left:42%;animation-delay:1.4s;}
+  .radar-dot.d3{top:30%;left:35%;animation-delay:2.2s;}
+  @keyframes dotBlip{0%,100%{opacity:0;transform:scale(.5);}50%{opacity:1;transform:scale(1.3);}}
+
+  .dash-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;}
+
+  .login-logo{position:relative;width:76px;height:76px;background:linear-gradient(135deg,var(--accent),#0369a1);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 0 40px rgba(14,165,233,.35);}
+  .logo-emoji{font-size:34px;position:relative;z-index:2;}
+  .logo-pulse{position:absolute;inset:-8px;border-radius:26px;border:2px solid var(--accent2);opacity:0;animation:logoPulse 2.4s ease-out infinite;}
+  @keyframes logoPulse{0%{transform:scale(.9);opacity:.7;}80%{transform:scale(1.25);opacity:0;}100%{opacity:0;}}
+
+  .login-title{font-size:23px;font-weight:700;text-align:center;margin-bottom:4px;letter-spacing:.01em;}
+  .login-sub{font-size:12.5px;color:var(--muted);text-align:center;margin-bottom:22px;letter-spacing:.06em;}
+
+  .status-strip{display:flex;align-items:center;gap:7px;font-size:11px;color:#4ade80;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);padding:7px 14px;border-radius:20px;letter-spacing:.04em;margin-bottom:34px;}
+  .status-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80;animation:statusBlink 1.6s ease-in-out infinite;}
+  @keyframes statusBlink{0%,100%{opacity:1;}50%{opacity:.35;}}
+
+  .btn-enter{display:flex;align-items:center;gap:10px;padding:18px 30px;background:linear-gradient(135deg,var(--accent),#0369a1);border:none;border-radius:16px;color:white;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:.03em;box-shadow:0 0 32px rgba(14,165,233,.4);transition:transform .15s,opacity .15s;}
+  .btn-enter:active{transform:scale(.97);opacity:.9;}
+  .btn-enter-icon{font-size:18px;}
+  .btn-enter-arrow{font-size:16px;transition:transform .2s;}
+  .btn-enter:active .btn-enter-arrow{transform:translateX(3px);}
+
+  .dash-footer{margin-top:26px;font-size:10.5px;color:var(--muted);letter-spacing:.08em;text-align:center;}
+
+  /* BACK BUTTON */
+  .btn-back{background:var(--surface2);border:1px solid var(--border);color:var(--text);width:34px;height:34px;border-radius:10px;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-right:4px;flex-shrink:0;}
+  .btn-back:active{transform:scale(.93);}
+
+  /* MENU BUTTON & DROPDOWN */
+  .btn-menu{background:var(--surface2);border:1px solid var(--border);color:var(--text);width:34px;height:34px;border-radius:10px;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .menu-dropdown{position:absolute;top:58px;right:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:8px;width:200px;z-index:250;box-shadow:0 12px 32px rgba(0,0,0,.5);display:none;flex-direction:column;gap:2px;}
+  .menu-dropdown.show{display:flex;}
+  .menu-item{background:none;border:none;color:var(--text);font-size:13px;font-weight:500;text-align:left;padding:11px 12px;border-radius:9px;cursor:pointer;display:flex;align-items:center;gap:8px;}
+  .menu-item:active{background:var(--surface2);}
+  .menu-divider{height:1px;background:var(--border);margin:6px 4px;}
+  .menu-logout{color:#fca5a5;}
+
+
+  /* APP */
+  #app{display:none;flex-direction:column;min-height:100vh;position:relative;}
+  .header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+  .header-left{display:flex;flex-direction:column;}
+  .header-title{font-size:15px;font-weight:700;}
+  .header-sub{font-size:11px;color:var(--accent);font-family:'JetBrains Mono',monospace;margin-top:2px;}
+  .header-right{display:flex;gap:6px;align-items:center;}
+  .btn-edit-rooms{background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.3);color:var(--accent2);padding:7px 10px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;}
+  .btn-edit-rooms.active{background:var(--accent);color:white;border-color:var(--accent);}
+  .btn-logout{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#fca5a5;padding:7px 10px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;}
+
+  /* BUILDING TABS */
+  .building-tabs{display:flex;gap:0;background:var(--surface);border-bottom:2px solid var(--border);}
+  .building-tab{flex:1;padding:11px 4px;font-size:11px;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;letter-spacing:.04em;text-align:center;white-space:nowrap;}
+  .building-tab.bmc.active{color:var(--bmc);border-bottom-color:var(--bmc);}
+  .building-tab.bci.active{color:var(--bci);border-bottom-color:var(--bci);}
+  .building-tab.ltc.active{color:var(--ltc);border-bottom-color:var(--ltc);}
+
+  /* ZONE TABS */
+  .zone-tabs{display:flex;gap:8px;padding:12px 16px 0;overflow-x:auto;scrollbar-width:none;background:var(--bg);}
+  .zone-tabs::-webkit-scrollbar{display:none;}
+  .zone-tab{flex-shrink:0;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);transition:all .2s;}
+  .zone-tab.active{color:white;}
+  .zone-tab.active.bmc{background:var(--bmc);border-color:var(--bmc);box-shadow:0 0 14px rgba(14,165,233,.3);}
+  .zone-tab.active.bci{background:var(--bci);border-color:var(--bci);box-shadow:0 0 14px rgba(139,92,246,.3);}
+  .zone-tab.active.ltc{background:var(--ltc);border-color:var(--ltc);box-shadow:0 0 14px rgba(16,185,129,.3);}
+
+  /* FLOOR TABS */
+  .floor-tabs{display:flex;gap:6px;padding:10px 16px;overflow-x:auto;scrollbar-width:none;background:var(--bg);}
+  .floor-tabs::-webkit-scrollbar{display:none;}
+  .floor-tab{flex-shrink:0;padding:7px 13px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .2s;white-space:nowrap;}
+  .floor-tab.active{background:var(--surface2);color:var(--text);border-color:var(--accent2);}
+
+  /* STATS */
+  .stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 16px 12px;background:var(--bg);}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 8px;text-align:center;}
+  .stat-num{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1;}
+  .stat-label{font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em;}
+  .stat-total .stat-num{color:var(--accent);}
+  .stat-male .stat-num{color:var(--male);}
+  .stat-female .stat-num{color:var(--female);}
+  .stat-vacant .stat-num{color:var(--amber);}
+
+  /* SAVE STATUS */
+  .save-status{font-size:11px;text-align:center;padding:4px 16px 8px;background:var(--bg);color:var(--muted);}
+  .save-status.saved{color:#4ade80;}
+  .save-status.saving{color:var(--amber);}
+  .save-status.offline{color:#f87171;}
+
+  /* ROOMS */
+  .rooms-wrap{padding:0 16px 100px;}
+  .section-label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;margin-top:2px;}
+  .rooms-grid{display:flex;flex-direction:column;gap:8px;}
+  .room-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:13px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none;}
+  .room-card:active{transform:scale(.99);}
+  .room-card.male{border-left:3px solid var(--male);}
+  .room-card.female{border-left:3px solid var(--female);}
+  .room-card.vacant{border-left:3px solid var(--vacant);opacity:.7;}
+  .room-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+  .room-card.male .room-icon{background:rgba(59,130,246,.15);}
+  .room-card.female .room-icon{background:rgba(236,72,153,.15);}
+  .room-card.vacant .room-icon{background:var(--surface2);}
+  .room-info{flex:1;}
+  .room-no{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;}
+  .room-status-text{font-size:11px;color:var(--muted);margin-top:2px;}
+  .room-badge{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;padding:5px 11px;border-radius:8px;letter-spacing:.05em;}
+  .room-card.male .room-badge{background:rgba(59,130,246,.15);color:#93c5fd;}
+  .room-card.female .room-badge{background:rgba(236,72,153,.15);color:#f9a8d4;}
+  .room-card.vacant .room-badge{background:var(--surface2);color:var(--muted);}
+
+  /* EDIT */
+  .edit-banner{background:rgba(14,165,233,.1);border-bottom:1px solid rgba(14,165,233,.25);padding:8px 16px;font-size:12px;color:var(--accent2);text-align:center;display:none;font-weight:500;}
+  .edit-banner.show{display:block;}
+  .room-card-edit{background:var(--surface);border:1.5px dashed var(--accent);border-radius:14px;padding:11px 12px;display:flex;align-items:center;gap:10px;}
+  .room-no-input{flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:var(--text);outline:none;min-width:0;}
+  .room-no-input:focus{border-color:var(--accent);}
+  .btn-del-room{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;border-radius:8px;padding:8px 11px;font-size:16px;cursor:pointer;flex-shrink:0;}
+  .btn-add-room{width:100%;padding:13px;background:rgba(14,165,233,.08);border:1.5px dashed var(--accent);border-radius:14px;color:var(--accent);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;}
+
+  .btn-new-admission{width:100%;padding:13px;background:linear-gradient(135deg,#22c55e,#15803d);border:none;border-radius:12px;color:white;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.03em;}
+  .gender-sel-btn{padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+  .gender-sel-btn.active{background:var(--accent);border-color:var(--accent);color:white;}
+  .admit-preview{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#4ade80;line-height:1.6;min-height:48px;word-break:break-word;}
+  .btn-copy-admit{padding:12px;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.3);border-radius:10px;color:var(--accent2);font-size:13px;font-weight:700;cursor:pointer;}
+  .btn-copy-admit.copied{background:rgba(34,197,94,.15);border-color:#22c55e;color:#4ade80;}
+  .btn-admit-confirm{padding:12px;background:linear-gradient(135deg,var(--accent),#0369a1);border:none;border-radius:10px;color:white;font-size:13px;font-weight:700;cursor:pointer;}
+
+  .btn-luggage-msg{width:100%;padding:13px;background:linear-gradient(135deg,#f59e0b,#b45309);border:none;border-radius:12px;color:white;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.03em;}
+  .btn-discharge-msg{width:100%;padding:13px;background:linear-gradient(135deg,#ef4444,#b91c1c);border:none;border-radius:12px;color:white;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.03em;}
+  .btn-transport-msg{width:100%;padding:13px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);border:none;border-radius:12px;color:white;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.03em;}
+  .trn-modal{max-height:88vh;overflow-y:auto;}
+  .trn-field-wrap{margin-bottom:12px;}
+  .trn-label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
+  .trn-grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+  .trn-grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:7px;}
+  .sel-chip{padding:9px 6px;border-radius:9px;border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center;}
+  .sel-chip.active{background:var(--accent);border-color:var(--accent);color:white;}
+
+  /* REPORT MODAL */
+  .report-modal{max-height:80vh;display:flex;flex-direction:column;}
+  .report-modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .btn-copy-report{background:var(--accent);border:none;border-radius:10px;color:white;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.03em;}
+  .btn-copy-report.copied{background:#22c55e;}
+  .report-preview{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text);line-height:1.7;overflow-y:auto;white-space:pre;flex:1;max-height:55vh;user-select:all;}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:flex-end;justify-content:center;z-index:200;backdrop-filter:blur(4px);}
+  .modal-overlay.show{display:flex;}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:28px 24px 40px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;}
+  .modal-handle{width:40px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 20px;}
+  .modal-title{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;}
+  .modal-top-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+  .btn-modal-back{background:var(--surface2);border:1px solid var(--border);color:var(--text);width:32px;height:32px;border-radius:9px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .btn-modal-back:active{transform:scale(.93);}
+  .modal-room{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;margin-bottom:20px;}
+  .status-btns{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  .status-btns-row2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px;}
+  .status-btn{padding:16px 10px;border-radius:14px;border:2px solid transparent;cursor:pointer;text-align:center;font-size:13px;font-weight:600;transition:all .2s;background:var(--surface2);color:var(--muted);}
+  .status-btn .s-icon{font-size:24px;display:block;margin-bottom:6px;}
+  .status-btn.sel-male{background:rgba(59,130,246,.2);border-color:var(--male);color:#93c5fd;}
+  .status-btn.sel-female{background:rgba(236,72,153,.2);border-color:var(--female);color:#f9a8d4;}
+  .status-btn.sel-vacant{background:rgba(100,116,139,.2);border-color:var(--muted);color:var(--muted);}
+  .status-btn.sel-pass{background:rgba(245,158,11,.2);border-color:var(--amber);color:#fcd34d;}
+  .status-btn.sel-vip{background:rgba(168,85,247,.2);border-color:#a855f7;color:#d8b4fe;}
+  .status-btn.sel-vvip{background:rgba(234,179,8,.2);border-color:#eab308;color:#fef08a;}
+  .status-btn.sel-mission{background:rgba(239,68,68,.2);border-color:#ef4444;color:#fca5a5;}
+  .room-card.pass{border-left:3px solid var(--amber);}
+  .room-card.pass .room-icon{background:rgba(245,158,11,.15);}
+  .room-card.pass .room-badge{background:rgba(245,158,11,.15);color:#fcd34d;}
+  .room-card.vip{border-left:3px solid #a855f7;}
+  .room-card.vip .room-icon{background:rgba(168,85,247,.15);}
+  .room-card.vip .room-badge{background:rgba(168,85,247,.15);color:#d8b4fe;}
+  .room-card.vvip{border-left:3px solid #eab308;}
+  .room-card.vvip .room-icon{background:rgba(234,179,8,.15);}
+  .room-card.vvip .room-badge{background:rgba(234,179,8,.15);color:#fef08a;}
+  .room-card.mission{border-left:3px solid #ef4444;}
+  .room-card.mission .room-icon{background:rgba(239,68,68,.15);}
+  .room-card.mission .room-badge{background:rgba(239,68,68,.15);color:#fca5a5;}
+
+  /* FAB */
+  .fab{position:fixed;bottom:24px;right:16px;background:#25D366;color:white;border:none;border-radius:18px;padding:14px 18px;font-size:14px;font-weight:700;display:flex;align-items:center;gap:9px;cursor:pointer;z-index:150;box-shadow:0 8px 24px rgba(37,211,102,.4);}
+  .fab:active{transform:scale(.96);}
+  .fab svg{width:20px;height:20px;}
+  .fab-notes{right:auto;left:16px;background:var(--surface2);border:1.5px solid var(--border);color:var(--accent2);box-shadow:0 4px 16px rgba(0,0,0,.4);font-size:13px;padding:13px 18px;}
+  .fab-notes:active{transform:scale(.96);}
+
+  /* NOTES FULLSCREEN */
+  .notes-overlay{position:fixed;inset:0;background:var(--bg);z-index:300;display:none;flex-direction:column;overflow:hidden;}
+  .notes-overlay.show{display:flex;}
+  .notes-screen{display:flex;flex-direction:column;height:100%;overflow:hidden;}
+  .notes-header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .notes-title{font-size:16px;font-weight:700;}
+  .notes-sub{font-size:11px;color:var(--accent);font-family:'JetBrains Mono',monospace;margin-top:2px;}
+  .notes-close{background:var(--surface2);border:1px solid var(--border);color:var(--text);width:34px;height:34px;border-radius:10px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+  /* SHIFT BAR */
+  .shift-bar{display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;}
+  .shift-btn{padding:10px 8px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--muted);border-bottom:3px solid transparent;transition:all .2s;text-align:center;line-height:1.4;letter-spacing:.03em;}
+  .shift-time{font-size:10px;font-weight:400;font-family:'JetBrains Mono',monospace;display:block;margin-top:2px;}
+  .shift-btn.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(14,165,233,.06);}
+
+  /* DATE BAR */
+  .notes-date-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;}
+  .date-lbl{font-size:12px;font-weight:600;color:var(--muted);}
+  .date-inp{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:13px;color:var(--text);outline:none;font-family:'Inter',sans-serif;}
+  .date-inp:focus{border-color:var(--accent);}
+
+  /* ENTRY FORM */
+  .entry-form{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;flex-shrink:0;}
+  .entry-type-row{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none;}
+  .entry-type-row::-webkit-scrollbar{display:none;}
+  .etype-btn{flex-shrink:0;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--muted);transition:all .2s;white-space:nowrap;}
+  .etype-btn.active{background:var(--accent);border-color:var(--accent);color:white;}
+  .entry-fields{display:flex;flex-direction:column;gap:10px;}
+  .entry-fields.hidden{display:none;}
+  .field-row{display:flex;gap:10px;}
+  .finp-wrap{display:flex;flex-direction:column;gap:4px;flex:1;}
+  .finp-wrap label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+  .finp{background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;color:var(--text);outline:none;font-family:'JetBrains Mono',monospace;font-weight:600;transition:border-color .2s;width:100%;}
+  .finp:focus{border-color:var(--accent);}
+  select.finp{cursor:pointer;}
+  .btn-add-entry{padding:10px;background:linear-gradient(135deg,var(--accent),#0369a1);border:none;border-radius:10px;color:white;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.03em;}
+
+  /* RECORDS */
+  .records-wrap{flex:1;overflow-y:auto;padding:12px 16px 80px;}
+  .records-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  .rec-title{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+  .btn-copy{background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.3);color:var(--accent2);padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;}
+  .rec-section{margin-bottom:14px;}
+  .rec-sec-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+  .rec-list{display:flex;flex-direction:column;gap:6px;}
+  .rec-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+  .rec-item.admission{border-left:3px solid #22c55e;}
+  .rec-item.discharge{border-left:3px solid #ef4444;}
+  .rec-item.shift{border-left:3px solid var(--amber);}
+  .rec-item.transport{border-left:3px solid var(--bci);}
+  .rec-text{font-size:13px;color:var(--text);line-height:1.5;flex:1;}
+  .rec-time{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;}
+  .rec-del{background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:0 2px;flex-shrink:0;}
+  .rec-empty{text-align:center;color:var(--muted);font-size:13px;padding:32px 0;display:none;}
+  .hidden{display:none!important;}
+
+  /* ════════════════════════════════════
+     3D / TACTILE VISUAL LAYER
+     ════════════════════════════════════ */
+
+  /* Global 3D text emboss for titles & headings */
+  .login-title, .header-title, .modal-title, .modal-room, .section-label,
+  .stat-num, .rec-sec-title, .notes-title, .recTitle, .building-tab,
+  .zone-tab, .floor-tab, .room-no, .login-sub {
+    text-shadow: 0 1px 0 rgba(255,255,255,.04), 0 2px 4px rgba(0,0,0,.55);
+  }
+
+  /* App title / big numbers extra pop */
+  .stat-num{ text-shadow: 0 1px 0 rgba(255,255,255,.08), 0 2px 3px rgba(0,0,0,.6), 0 0 18px currentColor; }
+
+  /* All icons get a soft drop + slight glow lift */
+  .room-icon, .login-logo, .logo-emoji, .s-icon, .btn-enter-icon,
+  .stat-card, .gender-sel-btn, .sel-chip {
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,.5));
+  }
+
+  /* === BUTTONS: raised 3D look with top highlight + bottom shadow === */
+  button {
+    position: relative;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.10),
+      inset 0 -2px 4px rgba(0,0,0,.25),
+      0 3px 6px rgba(0,0,0,.35);
+    transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+  }
+  button:active {
+    transform: translateY(2px) scale(.985);
+    box-shadow:
+      inset 0 2px 5px rgba(0,0,0,.4),
+      0 1px 2px rgba(0,0,0,.3);
+    filter: brightness(.95);
+  }
+
+  /* Filled/colored CTA buttons — stronger 3D pop with bottom edge */
+  .btn-enter, .btn-login, .btn-add-room, .btn-add-entry,
+  .btn-new-admission, .btn-discharge-msg, .btn-transport-msg, .btn-luggage-msg,
+  .btn-admit-confirm, .btn-install, .fab, .btn-copy-report, .btn-copy-admit {
+    box-shadow:
+      inset 0 1.5px 0 rgba(255,255,255,.22),
+      inset 0 -3px 6px rgba(0,0,0,.28),
+      0 5px 0 rgba(0,0,0,.25),
+      0 8px 16px rgba(0,0,0,.4);
+  }
+  .btn-enter:active, .btn-login:active, .btn-add-room:active, .btn-add-entry:active,
+  .btn-new-admission:active, .btn-discharge-msg:active, .btn-transport-msg:active, .btn-luggage-msg:active,
+  .btn-admit-confirm:active, .btn-install:active, .fab:active, .btn-copy-report:active, .btn-copy-admit:active {
+    transform: translateY(3px) scale(.98);
+    box-shadow:
+      inset 0 2px 6px rgba(0,0,0,.35),
+      0 2px 0 rgba(0,0,0,.2),
+      0 3px 6px rgba(0,0,0,.3);
+  }
+
+  /* Outlined / chip-style buttons — subtle raised card effect */
+  .zone-tab, .floor-tab, .building-tab, .sel-chip, .gender-sel-btn,
+  .etype-btn, .status-btn, .shift-btn, .stat-card {
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.06),
+      0 2px 4px rgba(0,0,0,.3);
+  }
+  .zone-tab.active, .building-tab.active, .sel-chip.active, .gender-sel-btn.active,
+  .etype-btn.active, .shift-btn.active {
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.25),
+      inset 0 -2px 4px rgba(0,0,0,.2),
+      0 4px 10px rgba(14,165,233,.35);
+  }
+
+  /* Room cards — soft elevated card with depth */
+  .room-card, .rec-item, .room-card-edit {
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.05),
+      0 3px 8px rgba(0,0,0,.35);
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .room-card:active { transform: translateY(1px) scale(.99); }
+
+  /* Status badges — embossed pill look */
+  .room-badge, .rec-time {
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.3), 0 1px 0 rgba(255,255,255,.05);
+    text-shadow: 0 1px 1px rgba(0,0,0,.4);
+  }
+
+  /* Status dot / blink indicators — glowing 3D sphere look */
+  .status-dot, .radar-dot, .save-status.saved::before {
+    box-shadow: 0 0 6px currentColor, inset 0 -1px 2px rgba(0,0,0,.3), inset 0 1px 1px rgba(255,255,255,.4);
+  }
+
+  /* Modal panels — subtle raised sheet with top inner glow */
+  .modal, .notes-screen, .menu-dropdown {
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.05),
+      0 -8px 24px rgba(0,0,0,.45);
+  }
+
+  /* Inputs — inset 3D "carved" look */
+  .finp, .date-inp, .pass-input, .sf-input, .room-no-input {
+    box-shadow: inset 0 2px 4px rgba(0,0,0,.4), inset 0 -1px 0 rgba(255,255,255,.03);
+  }
+  .finp:focus, .date-inp:focus, .room-no-input:focus {
+    box-shadow: inset 0 2px 4px rgba(0,0,0,.4), 0 0 0 3px rgba(14,165,233,.15);
+  }
+
+  /* Menu / back / icon-only buttons — small embossed circular feel */
+  .btn-back, .btn-menu, .btn-modal-back, .notes-close, .btn-dismiss, .rec-del {
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 5px rgba(0,0,0,.4);
+  }
+
+  /* Logo — extra dimensional pop */
+  .login-logo {
+    box-shadow:
+      inset 0 2px 0 rgba(255,255,255,.25),
+      inset 0 -4px 8px rgba(0,0,0,.3),
+      0 10px 28px rgba(14,165,233,.45);
+  }
+
+  /* Slight perspective tilt on hover-capable devices for cards (desktop preview) */
+  @media (hover:hover) {
+    .room-card:hover, .stat-card:hover { transform: translateY(-1px); }
+  }
+</style>
+</head>
+<body>
+
+<!-- INSTALL BANNER (Android Chrome) -->
+<div id="installBanner">
+  <div class="install-text">
+    <strong>📲 Install App</strong>
+    Add to Home Screen for offline use
+  </div>
+  <button class="btn-install" onclick="installApp()">Install</button>
+  <button class="btn-dismiss" onclick="dismissInstall()">✕</button>
+</div>
+
+<!-- SPLASH / DASHBOARD -->
+<div id="loginScreen">
+  <div class="radar-bg">
+    <div class="radar-ring r1"></div>
+    <div class="radar-ring r2"></div>
+    <div class="radar-ring r3"></div>
+    <div class="radar-sweep"></div>
+    <div class="radar-dot d1"></div>
+    <div class="radar-dot d2"></div>
+    <div class="radar-dot d3"></div>
+  </div>
+
+  <div class="dash-content">
+    <div class="login-logo">
+      <span class="logo-emoji">🏥</span>
+      <span class="logo-pulse"></span>
+    </div>
+    <div class="login-title">BMC Patient Tracker</div>
+    <div class="login-sub">BURJEEL MEDICAL CITY · ACCESS CONTROL</div>
+
+    <div class="status-strip">
+      <span class="status-dot"></span> SYSTEM ONLINE · SECURE LOCAL STORAGE
+    </div>
+
+    <button class="btn-enter" onclick="doLogin()">
+      <span class="btn-enter-icon">📋</span>
+      <span>PATIENT STATUS REPORT</span>
+      <span class="btn-enter-arrow">→</span>
+    </button>
+
+    <div class="dash-footer">Access Control · Zones A–D · BCI · LTC</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="header">
+    <button class="btn-back" id="btnBack" onclick="goBack()" style="display:none;">←</button>
+    <div class="header-left">
+      <div class="header-title">🏥 BMC Patient Status</div>
+    </div>
+    <div class="header-right">
+      <button class="btn-edit-rooms" id="editToggleBtn" onclick="toggleEditMode()">✏️ Edit</button>
+      <button class="btn-menu" onclick="toggleMenu()">☰</button>
+    </div>
+  </div>
+
+  <!-- DROPDOWN MENU -->
+  <div class="menu-dropdown" id="menuDropdown">
+    <button class="menu-item" onclick="goHome()">🏠 Home / Dashboard</button>
+    <button class="menu-item" onclick="openNotes(); closeMenu();">📝 Floor Notes</button>
+    <button class="menu-item" onclick="openReportModal(); closeMenu();">📋 Generate Report (Text)</button>
+    <div class="menu-divider"></div>
+    <button class="menu-item" onclick="exportToExcel(); closeMenu();">📊 Export to Excel</button>
+    <button class="menu-item" onclick="generateExcelReport(); closeMenu();">📑 Generate Excel Report</button>
+    <div class="menu-divider"></div>
+    <button class="menu-item" onclick="syncToGithub(); closeMenu();">🔄 Sync to GitHub</button>
+    <button class="menu-item" onclick="openGithubSettings(); closeMenu();">⚙️ GitHub Sync Settings</button>
+    <div class="menu-divider"></div>
+    <button class="menu-item menu-logout" onclick="doLogout()">🚪 Exit App</button>
+  </div>
+
+  <div class="building-tabs" id="buildingTabs"></div>
+  <div class="edit-banner" id="editBanner">✏️ EDIT MODE — Rename · Add · Delete rooms · Changes save automatically</div>
+  <div class="zone-tabs" id="zoneTabs"></div>
+  <div class="floor-tabs" id="floorTabs"></div>
+
+  <div class="stats-bar">
+    <div class="stat-card stat-total"><div class="stat-num" id="sTot">0</div><div class="stat-label">Total</div></div>
+    <div class="stat-card stat-male"><div class="stat-num" id="sMale">0</div><div class="stat-label">Male</div></div>
+    <div class="stat-card stat-female"><div class="stat-num" id="sFem">0</div><div class="stat-label">Female</div></div>
+    <div class="stat-card stat-vacant"><div class="stat-num" id="sVac">0</div><div class="stat-label">Vacant</div></div>
+  </div>
+
+  <div class="save-status" id="saveStatus">💾 Data saved on this device</div>
+
+  <div class="rooms-wrap">
+    <div class="section-label" id="sectionLabel"></div>
+    <div class="rooms-grid" id="roomsGrid"></div>
+  </div>
+
+  <button class="fab fab-notes" onclick="openNotes()">
+    📝 Notes
+  </button>
+
+  <button class="fab" onclick="openReportModal()">
+    📋 Generate Report
+  </button>
+</div>
+
+<!-- REPORT MODAL -->
+<div class="modal-overlay" id="reportModal" onclick="closeReportModal(event)">
+  <div class="modal report-modal">
+    <div class="modal-handle"></div>
+    <div class="report-modal-header">
+      <button class="btn-modal-back" onclick="document.getElementById('reportModal').classList.remove('show')">←</button>
+      <div class="modal-title">PATIENT STATUS REPORT</div>
+      <button class="btn-copy-report" id="copyReportBtn" onclick="copyReport()">📋 Copy</button>
+    </div>
+    <pre class="report-preview" id="reportPreview"></pre>
+  </div>
+</div>
+
+<!-- GITHUB SYNC SETTINGS MODAL -->
+<div class="modal-overlay" id="githubSettingsModal" onclick="closeGithubSettings(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-top-row">
+      <div class="modal-title">⚙️ GITHUB SYNC SETTINGS</div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:16px;">
+      Data stays on this device by default. Fill this in once, then use <strong>🔄 Sync to GitHub</strong> whenever you want to manually upload a backup. Nothing is uploaded automatically.
+    </div>
+    <div class="trn-field-wrap">
+      <div class="trn-label">Repo Owner (username/org)</div>
+      <input type="text" id="ghOwner" class="finp" placeholder="e.g. yourusername" style="width:100%;">
+    </div>
+    <div class="trn-field-wrap">
+      <div class="trn-label">Repository Name</div>
+      <input type="text" id="ghRepo" class="finp" placeholder="e.g. bmc-data" style="width:100%;">
+    </div>
+    <div class="trn-field-wrap">
+      <div class="trn-label">Branch</div>
+      <input type="text" id="ghBranch" class="finp" placeholder="main" style="width:100%;">
+    </div>
+    <div class="trn-field-wrap">
+      <div class="trn-label">File Path</div>
+      <input type="text" id="ghPath" class="finp" placeholder="data/bmc-data.json" style="width:100%;">
+    </div>
+    <div class="trn-field-wrap">
+      <div class="trn-label">Personal Access Token</div>
+      <input type="password" id="ghToken" class="finp" placeholder="ghp_xxxxxxxxxxxx" style="width:100%;" autocomplete="off">
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:16px;" id="ghLastSynced">Never synced from this device.</div>
+    <button class="btn-admit-confirm" style="width:100%;margin-bottom:10px;" onclick="saveGithubSettings()">💾 Save Settings</button>
+    <button class="btn-copy-admit" style="width:100%;" onclick="document.getElementById('githubSettingsModal').classList.remove('show')">Close</button>
+  </div>
+</div>
+
+<!-- EXCEL DELIVERY MODAL (Export / Report) -->
+<div class="modal-overlay" id="xlsxModal" onclick="closeXlsxModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-top-row">
+      <div class="modal-title" id="xlsxModalTitle">EXCEL FILE READY</div>
+    </div>
+    <div style="font-size:13px;color:var(--text);margin-bottom:18px;" id="xlsxModalDesc"></div>
+    <button class="btn-admit-confirm" style="width:100%;margin-bottom:10px;" onclick="downloadPendingXlsx()">⬇️ Download Excel File</button>
+    <button class="btn-copy-admit" style="width:100%;margin-bottom:10px;" onclick="sharePendingXlsx()">📤 Share Excel File</button>
+    <button class="btn-copy-admit" style="width:100%;" onclick="document.getElementById('xlsxModal').classList.remove('show')">Close</button>
+  </div>
+</div>
+
+<!-- NOTES MODAL -->
+<div class="notes-overlay" id="notesOverlay">
+  <div class="notes-screen">
+
+    <!-- Notes Header -->
+    <div class="notes-header">
+      <div>
+        <div class="notes-title">📝 Floor Notes</div>
+        <div class="notes-sub" id="notesLocationLabel"></div>
+      </div>
+      <button class="notes-close" onclick="closeNotes()">✕</button>
+    </div>
+
+    <!-- Shift Selector -->
+    <div class="shift-bar">
+      <button class="shift-btn" id="shiftDay" onclick="selectShift('day')">☀️ DAY SHIFT</button>
+      <button class="shift-btn" id="shiftNight" onclick="selectShift('night')">🌙 NIGHT SHIFT</button>
+    </div>
+
+    <!-- Date -->
+    <div class="notes-date-bar">
+      <label class="date-lbl">Date:</label>
+      <input class="date-inp" type="date" id="notesDate">
+    </div>
+
+    <!-- Entry Form -->
+    <div class="entry-form">
+      <div class="entry-type-row" id="entryTypeRow">
+        <button class="etype-btn active" data-type="admission"   onclick="setEntryType('admission')">🏥 Admission</button>
+        <button class="etype-btn"        data-type="discharge"   onclick="setEntryType('discharge')">🚪 Discharge</button>
+        <button class="etype-btn"        data-type="shift"       onclick="setEntryType('shift')">🔄 Room Shift</button>
+        <button class="etype-btn"        data-type="transport"   onclick="setEntryType('transport')">🚑 Transport</button>
+      </div>
+
+      <!-- Admission -->
+      <div class="entry-fields" id="fields-admission">
+        <div class="field-row">
+          <div class="finp-wrap"><label>Room No.</label><input class="finp" id="adm-room" placeholder="e.g. 401"></div>
+          <div class="finp-wrap"><label>Time (hrs)</label><input class="finp" id="adm-time" placeholder="e.g. 1430"></div>
+        </div>
+        <button class="btn-add-entry" onclick="addEntry('admission')">＋ Add Admission</button>
+      </div>
+
+      <!-- Discharge -->
+      <div class="entry-fields hidden" id="fields-discharge">
+        <div class="field-row">
+          <div class="finp-wrap"><label>Room No.</label><input class="finp" id="dis-room" placeholder="e.g. 402"></div>
+          <div class="finp-wrap"><label>Time (hrs)</label><input class="finp" id="dis-time" placeholder="e.g. 1600"></div>
+        </div>
+        <button class="btn-add-entry" onclick="addEntry('discharge')">＋ Add Discharge</button>
+      </div>
+
+      <!-- Room Shift -->
+      <div class="entry-fields hidden" id="fields-shift">
+        <div class="field-row">
+          <div class="finp-wrap"><label>From Room</label><input class="finp" id="shf-from" placeholder="e.g. 401"></div>
+          <div class="finp-wrap"><label>To Room</label><input class="finp" id="shf-to" placeholder="e.g. 402"></div>
+        </div>
+        <div class="field-row">
+          <div class="finp-wrap"><label>Time (hrs)</label><input class="finp" id="shf-time" placeholder="e.g. 2003"></div>
+        </div>
+        <button class="btn-add-entry" onclick="addEntry('shift')">＋ Add Room Shift</button>
+      </div>
+
+      <!-- Transport -->
+      <div class="entry-fields hidden" id="fields-transport">
+        <div class="field-row">
+          <div class="finp-wrap"><label>Room No.</label><input class="finp" id="trn-room" placeholder="e.g. 403"></div>
+          <div class="finp-wrap"><label>Time (hrs)</label><input class="finp" id="trn-time" placeholder="e.g. 2100"></div>
+        </div>
+        <div class="field-row">
+          <div class="finp-wrap" style="flex:1"><label>Destination</label>
+            <select class="finp" id="trn-dest">
+              <option value="OT">OT</option>
+              <option value="X-Ray">X-Ray</option>
+              <option value="CT-Scan">CT-Scan</option>
+              <option value="MRI">MRI</option>
+              <option value="ICU">ICU</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-add-entry" onclick="addEntry('transport')">＋ Add Transport</button>
+      </div>
+    </div>
+
+    <!-- Records Table -->
+    <div class="records-wrap">
+      <div class="records-toolbar">
+        <div class="rec-title" id="recTitle">Today's Records</div>
+        <button class="btn-copy" onclick="copyNotes()" id="copyBtn">📋 Copy</button>
+      </div>
+
+      <!-- Sections -->
+      <div class="rec-section" id="sec-admission">
+        <div class="rec-sec-title">🏥 ADMISSIONS</div>
+        <div class="rec-list" id="list-admission"></div>
+      </div>
+      <div class="rec-section" id="sec-discharge">
+        <div class="rec-sec-title">🚪 DISCHARGES</div>
+        <div class="rec-list" id="list-discharge"></div>
+      </div>
+      <div class="rec-section" id="sec-shift">
+        <div class="rec-sec-title">🔄 ROOM SHIFTS</div>
+        <div class="rec-list" id="list-shift"></div>
+      </div>
+      <div class="rec-section" id="sec-transport">
+        <div class="rec-sec-title">🚑 TRANSPORTS</div>
+        <div class="rec-list" id="list-transport"></div>
+      </div>
+      <div class="rec-empty" id="recEmpty">No records yet for this shift.</div>
+    </div>
+
+  </div>
+</div>
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-top-row">
+      <div class="modal-title">Update Room Status</div>
+      <button class="btn-modal-back" onclick="document.getElementById('modalOverlay').classList.remove('show')">←</button>
+    </div>
+    <div class="modal-room" id="modalRoomName"></div>
+    <div class="status-btns">
+      <button class="status-btn" onclick="setStatus('M')"><span class="s-icon">👨</span>Male</button>
+      <button class="status-btn" onclick="setStatus('F')"><span class="s-icon">👩</span>Female</button>
+    </div>
+    <div class="status-btns-row2">
+      <button class="status-btn" onclick="setStatus('V')"><span class="s-icon">🛏️</span>Vacant</button>
+      <button class="status-btn" onclick="openGenderPicker('P')"><span class="s-icon">🚶</span>Out On Pass</button>
+    </div>
+    <div class="status-btns-row2">
+      <button class="status-btn" onclick="openGenderPicker('VIP')"><span class="s-icon">⭐</span>VIP</button>
+      <button class="status-btn" onclick="openGenderPicker('VVIP')"><span class="s-icon">👑</span>VVIP</button>
+    </div>
+    <div class="status-btns-row2">
+      <button class="status-btn" onclick="openGenderPicker('MSN')" style="grid-column:span 2"><span class="s-icon">🎯</span>Mission</button>
+    </div>
+    <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px;">
+      <button class="btn-new-admission" onclick="openAdmitAnnounce()">🏥 New Patient Admitted — Generate Message</button>
+    </div>
+    <div style="margin-top:8px;">
+      <button class="btn-discharge-msg" onclick="openDischargeMsg()">🚪 Patient Discharged — Generate Message</button>
+    </div>
+    <div style="margin-top:8px;">
+      <button class="btn-transport-msg" onclick="openTransportMsg()">🚑 Patient Transfer — Generate Message</button>
+    </div>
+    <div style="margin-top:8px;">
+      <button class="btn-luggage-msg" onclick="openLuggageMsg()">🛒 Trolley Request — Generate Message</button>
+    </div>
+  </div>
+</div>
+
+<!-- GENDER PICKER FOR VIP/VVIP/PASS -->
+<div class="modal-overlay" id="genderPickerModal" onclick="closeGenderPicker(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-top-row">
+      <div class="modal-title" id="genderPickerTitle">Select Gender</div>
+      <button class="btn-modal-back" onclick="document.getElementById('genderPickerModal').classList.remove('show')">←</button>
+    </div>
+    <div class="modal-room" id="genderPickerRoom"></div>
+    <div class="status-btns" style="margin-top:8px;">
+      <button class="status-btn" onclick="setStatusWithGender('M')"><span class="s-icon">👨</span>Male</button>
+      <button class="status-btn" onclick="setStatusWithGender('F')"><span class="s-icon">👩</span>Female</button>
+    </div>
+  </div>
+</div>
+
+<!-- LUGGAGE REQUEST MODAL -->
+<div class="modal-overlay" id="luggageModal" onclick="closeLuggageModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-top-row">
+      <div class="modal-title">Trolley Request</div>
+      <button class="btn-modal-back" onclick="closeLuggageModalDirect()">←</button>
+    </div>
+    <div class="modal-room" id="luggageRoomLabel"></div>
+    <div class="finp-wrap" style="margin-bottom:12px;">
+      <label style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;display:block;">IP Number (e.g. IP4D)</label>
+      <input class="finp" id="luggageIP" placeholder="e.g. IP4D" style="width:100%;" oninput="updateLuggagePreview()">
+    </div>
+    <div class="admit-preview" id="luggagePreview"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;">
+      <button class="btn-copy-admit" id="copyLuggageBtn" onclick="copyLuggageMsg()">📋 Copy</button>
+      <button class="btn-admit-confirm" onclick="closeLuggageModalDirect()">✅ Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- DISCHARGE MESSAGE MODAL -->
+<div class="modal-overlay" id="dischargeModal" onclick="closeDischModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-top-row">
+      <div class="modal-title">Patient Discharged</div>
+      <button class="btn-modal-back" onclick="document.getElementById('dischargeModal').classList.remove('show')">←</button>
+    </div>
+    <div class="modal-room" id="dischRoomLabel"></div>
+    <div style="margin-bottom:12px;">
+      <div class="finp-wrap" style="margin-bottom:10px;">
+        <label style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;display:block;">IP Number (e.g. IP4D)</label>
+        <input class="finp" id="dischIP" placeholder="e.g. IP4D" style="width:100%;" oninput="updateDischPreview()">
+      </div>
+      <div class="finp-wrap">
+        <label style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;display:block;">Patient Gender</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
+          <button class="gender-sel-btn active" id="dischGenderMale" onclick="selectDischGender('male')">👨 Male</button>
+          <button class="gender-sel-btn" id="dischGenderFemale" onclick="selectDischGender('female')">👩 Female</button>
+        </div>
+      </div>
+    </div>
+    <div class="admit-preview" id="dischPreview"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;">
+      <button class="btn-copy-admit" id="copyDischBtn" onclick="copyDischMsg()">📋 Copy</button>
+      <button class="btn-admit-confirm" onclick="confirmDischarge()">✅ Confirm & Set Vacant</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMISSION ANNOUNCE MODAL -->
+<div class="modal-overlay" id="admitModal" onclick="closeAdmitModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-top-row">
+      <div class="modal-title">New Patient Admission</div>
+      <button class="btn-modal-back" onclick="document.getElementById('admitModal').classList.remove('show')">←</button>
+    </div>
+    <div class="modal-room" id="admitRoomLabel"></div>
+    <div style="margin-bottom:12px;">
+      <div class="finp-wrap" style="margin-bottom:10px;">
+        <label style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;display:block;">IP Number (e.g. IP4D)</label>
+        <input class="finp" id="admitIP" placeholder="e.g. IP4D" style="width:100%;">
+      </div>
+      <div class="finp-wrap">
+        <label style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;display:block;">Patient Gender</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
+          <button class="gender-sel-btn active" id="genderMale" onclick="selectGender('male')">👨 Male</button>
+          <button class="gender-sel-btn" id="genderFemale" onclick="selectGender('female')">👩 Female</button>
+        </div>
+      </div>
+    </div>
+    <div class="admit-preview" id="admitPreview"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;">
+      <button class="btn-copy-admit" id="copyAdmitBtn" onclick="copyAdmission()">📋 Copy</button>
+      <button class="btn-admit-confirm" onclick="confirmAdmission()">✅ Confirm & Set</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRANSPORT MESSAGE MODAL -->
+<div class="modal-overlay" id="transportModal" onclick="closeTrnModal(event)">
+  <div class="modal trn-modal">
+    <div class="modal-handle"></div>
+    <div class="modal-top-row">
+      <div class="modal-title">Patient Transfer</div>
+      <button class="btn-modal-back" onclick="closeTrnModalDirect()">←</button>
+    </div>
+    <div class="modal-room" id="trnRoomLabel"></div>
+
+    <!-- IP Number -->
+    <div class="trn-field-wrap">
+      <div class="trn-label">IP Number</div>
+      <input class="finp" id="trnIP" placeholder="e.g. IP4D" oninput="updateTrnPreview()">
+    </div>
+
+    <!-- Gender -->
+    <div class="trn-field-wrap">
+      <div class="trn-label">Patient Gender</div>
+      <div class="trn-grid2">
+        <button class="sel-chip active" id="trnGenderM" onclick="trnSelect('gender','male',this)">👨 Male</button>
+        <button class="sel-chip" id="trnGenderF" onclick="trnSelect('gender','female',this)">👩 Female</button>
+      </div>
+    </div>
+
+    <!-- Destination -->
+    <div class="trn-field-wrap">
+      <div class="trn-label">Going To</div>
+      <div class="trn-grid4">
+        <button class="sel-chip active" onclick="trnSelect('dest','OT',this)">OT</button>
+        <button class="sel-chip" onclick="trnSelect('dest','X-RAY',this)">X-RAY</button>
+        <button class="sel-chip" onclick="trnSelect('dest','ICU',this)">ICU</button>
+        <button class="sel-chip" onclick="trnSelect('dest','MRI',this)">MRI</button>
+        <button class="sel-chip" onclick="trnSelect('dest','CT-SCAN',this)">CT-SCAN</button>
+        <button class="sel-chip" onclick="trnSelect('dest','ECHO',this)">ECHO</button>
+        <button class="sel-chip" onclick="trnSelect('dest','WARD',this)">WARD</button>
+        <button class="sel-chip" onclick="trnSelect('dest','DIALYSIS',this)">DIALYSIS</button>
+      </div>
+    </div>
+
+    <!-- Mode -->
+    <div class="trn-field-wrap">
+      <div class="trn-label">Via</div>
+      <div class="trn-grid2">
+        <button class="sel-chip active" onclick="trnSelect('mode','wheelchair',this)">♿ Wheelchair</button>
+        <button class="sel-chip" onclick="trnSelect('mode','bed',this)">🛏️ Bed</button>
+      </div>
+    </div>
+
+    <!-- Lift -->
+    <div class="trn-field-wrap">
+      <div class="trn-label">Using Lift</div>
+      <div class="trn-grid4" id="liftChips"></div>
+    </div>
+
+    <!-- Preview -->
+    <div class="admit-preview" id="trnPreview"></div>
+
+    <!-- Actions -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;">
+      <button class="btn-copy-admit" id="copyTrnBtn" onclick="copyTrnMsg()">📋 Copy</button>
+      <button class="btn-admit-confirm" onclick="closeTrnModalDirect()">✅ Done</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════
+//  BUILDING & FLOOR CONFIG
+// ════════════════════════════════════
+const BMC_FLOORS  = ['Basement','Ground','1st Floor','2nd Floor','3rd Floor','4th Floor','5th Floor','6th Floor','7th Floor','8th Floor'];
+const BCI_FLOORS  = ['Ground','1st Floor','2nd Floor','3rd Floor','4th Floor'];
+const LTC_FLOORS  = ['Ground','1st Floor','2nd Floor','3rd Floor','4th Floor'];
+
+const BUILDINGS = [
+  {
+    key: 'BMC', label: 'BMC Main', cls: 'bmc',
+    zones: ['Zone A','Zone B','Zone C','Zone D'],
+    floors: BMC_FLOORS
+  },
+  {
+    key: 'BCI', label: 'BCI Building', cls: 'bci',
+    zones: ['BCI'],   // single "zone" — no zone tabs shown
+    floors: BCI_FLOORS
+  },
+  {
+    key: 'LTC', label: 'LTC Building', cls: 'ltc',
+    zones: ['LTC'],
+    floors: LTC_FLOORS
+  }
+];
+
+// ════════════════════════════════════
+//  DEFAULT ROOMS
+// ════════════════════════════════════
+function defaultRooms(bldKey, zone, floor) {
+  const floors = BUILDINGS.find(b=>b.key===bldKey).floors;
+  const fi = floors.indexOf(floor);
+  const prefixMap = ['B','G','1','2','3','4','5','6','7','8'];
+  const p = prefixMap[fi] || String(fi);
+
+  if (bldKey === 'BMC') {
+    const z = zone.replace('Zone ','');
+    const count = floor==='Basement'?6:floor==='Ground'?7:8;
+    const rooms = [];
+    for(let i=1;i<=count;i++) rooms.push(`${z}${p}${String(i).padStart(2,'0')}`);
+    rooms.push(`${z} ISO`);
+    return rooms;
+  } else {
+    // BCI / LTC — simple numbered rooms
+    const prefix = bldKey === 'BCI' ? 'BCI' : 'LTC';
+    const count = floor==='Ground' ? 8 : 10;
+    const rooms = [];
+    for(let i=1;i<=count;i++) rooms.push(`${prefix}-${p}${String(i).padStart(2,'0')}`);
+    rooms.push(`${prefix} ISO`);
+    return rooms;
+  }
+}
+
+function buildDefaultData() {
+  const result = {};
+  BUILDINGS.forEach(b => {
+    result[b.key] = {};
+    b.zones.forEach(zone => {
+      result[b.key][zone] = {};
+      b.floors.forEach(floor => {
+        result[b.key][zone][floor] = defaultRooms(b.key, zone, floor);
+      });
+    });
+  });
+  return result;
+}
+
+// ════════════════════════════════════
+//  STATE
+// ════════════════════════════════════
+let currentBuilding = 'BMC', currentZone = 'Zone A', currentFloor = 'Ground';
+let selectedRoom = '', editMode = false, pendingStatus = '';
+let allRooms = {}, patientData = {};
+
+// ════════════════════════════════════
+//  STORAGE — localStorage (offline-first)
+//  Note: data is saved per device/browser.
+//  For shared online sync, a server/database
+//  would be needed (contact your IT team).
+// ════════════════════════════════════
+function saveAll() {
+  try {
+    localStorage.setItem('bmc_rooms_v3', JSON.stringify(allRooms));
+    localStorage.setItem('bmc_pt_v3', JSON.stringify(patientData));
+    showSaveStatus('saved');
+  } catch(e) {
+    showSaveStatus('offline');
+  }
+}
+
+function loadAll() {
+  try {
+    const r = localStorage.getItem('bmc_rooms_v3');
+    const p = localStorage.getItem('bmc_pt_v3');
+    allRooms   = r ? JSON.parse(r) : buildDefaultData();
+    patientData = p ? JSON.parse(p) : {};
+  } catch(e) {
+    allRooms   = buildDefaultData();
+    patientData = {};
+  }
+}
+
+let saveTimer = null;
+function showSaveStatus(type) {
+  const el = document.getElementById('saveStatus');
+  if (type === 'saved')   { el.className='save-status saved';   el.textContent='✅ Data saved on this device'; }
+  if (type === 'saving')  { el.className='save-status saving';  el.textContent='💾 Saving...'; }
+  if (type === 'offline') { el.className='save-status offline'; el.textContent='⚠️ Storage error — data may not be saved'; }
+}
+
+function getRooms() { return ((allRooms[currentBuilding]||{})[currentZone]||{})[currentFloor]||[]; }
+function getStatus(b,z,f,r) { return patientData[`${b}|${z}|${f}|${r}`]||'V'; }
+function setPatient(b,z,f,r,v) { patientData[`${b}|${z}|${f}|${r}`]=v; saveAll(); }
+
+// Decode combined status like 'PM','PF','VIPM','VIPF','VVIPM','VVIPF'
+function decodeStatus(s) {
+  const map = {
+    'M':  { base:'M',    gender:'Male',   cls:'male',    icon:'👨', badge:'[M]',              label:'Male Patient' },
+    'F':  { base:'F',    gender:'Female', cls:'female',  icon:'👩', badge:'[F]',              label:'Female Patient' },
+    'V':  { base:'V',    gender:'',       cls:'vacant',  icon:'🛏️', badge:'[Vac.]',           label:'Vacant' },
+    'PM': { base:'P',    gender:'Male',   cls:'pass',    icon:'🚶', badge:'[M-Out On Pass]',   label:'Male Out On Pass' },
+    'PF': { base:'P',    gender:'Female', cls:'pass',    icon:'🚶', badge:'[F-Out On Pass]',   label:'Female Out On Pass' },
+    'VIPM':  { base:'VIP',  gender:'Male',   cls:'vip',  icon:'⭐', badge:'[M-VIP]',    label:'Male VIP Patient' },
+    'VIPF':  { base:'VIP',  gender:'Female', cls:'vip',  icon:'⭐', badge:'[F-VIP]',    label:'Female VIP Patient' },
+    'VVIPM': { base:'VVIP', gender:'Male',   cls:'vvip', icon:'👑', badge:'[M-VVIP]',   label:'Male VVIP Patient' },
+    'VVIPF': { base:'VVIP', gender:'Female', cls:'vvip', icon:'👑', badge:'[F-VVIP]',   label:'Female VVIP Patient' },
+    'MSN': { base:'MSN', gender:'',       cls:'mission', icon:'🎯', badge:'[Mission]',        label:'Mission' },
+    'MSNM': { base:'MSN', gender:'Male',   cls:'mission', icon:'🎯', badge:'[M-Mission]',      label:'Male Mission' },
+    'MSNF': { base:'MSN', gender:'Female', cls:'mission', icon:'🎯', badge:'[F-Mission]',      label:'Female Mission' },
+    // Legacy fallbacks (old data without gender)
+    'P':    { base:'P',    gender:'',  cls:'pass',    icon:'🚶', badge:'[Out On Pass]',    label:'Out On Pass' },
+    'VIP':  { base:'VIP',  gender:'',  cls:'vip',     icon:'⭐', badge:'[VIP]',            label:'VIP Patient' },
+    'VVIP': { base:'VVIP', gender:'',  cls:'vvip',    icon:'👑', badge:'[VVIP]',           label:'VVIP Patient' },
+  };
+  return map[s] || { base:'V', gender:'', cls:'vacant', icon:'🛏️', badge:'[Vac.]', label:'Vacant' };
+}
+function openGenderPicker(statusType) {
+  pendingStatus = statusType;
+  document.getElementById('modalOverlay').classList.remove('show');
+  const icons = {P:'🚶 Out On Pass', VIP:'⭐ VIP', VVIP:'👑 VVIP', MSN:'🎯 Mission'};
+  document.getElementById('genderPickerTitle').textContent = icons[statusType] || statusType;
+  document.getElementById('genderPickerRoom').textContent = document.getElementById('modalRoomName').textContent;
+  document.getElementById('genderPickerModal').classList.add('show');
+}
+function closeGenderPicker(e) {
+  if(e.target===document.getElementById('genderPickerModal'))
+    document.getElementById('genderPickerModal').classList.remove('show');
+}
+function setStatusWithGender(gender) {
+  // Store as e.g. 'PM' 'PF' 'VIPM' 'VIPF' 'VVIPM' 'VVIPF'
+  const combined = pendingStatus + gender;
+  setPatient(currentBuilding,currentZone,currentFloor,selectedRoom,combined);
+  document.getElementById('genderPickerModal').classList.remove('show');
+  renderRooms();
+}
+function getBldObj() { return BUILDINGS.find(b=>b.key===currentBuilding); }
+function getBldCls() { return getBldObj()?.cls||'bmc'; }
+
+// ════════════════════════════════════
+//  LOGIN / LOGOUT
+// ════════════════════════════════════
+function doLogin() {
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  loadAll();
+  renderAll();
+  document.getElementById('btnBack').style.display='none';
+}
+
+function doLogout() {
+  editMode=false;
+  closeMenu();
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('app').style.display='none';
+  document.getElementById('editToggleBtn').classList.remove('active');
+  document.getElementById('editBanner').classList.remove('show');
+}
+
+// ════════════════════════════════════
+//  MENU / BACK / HOME NAVIGATION
+// ════════════════════════════════════
+function toggleMenu() {
+  document.getElementById('menuDropdown').classList.toggle('show');
+}
+function closeMenu() {
+  document.getElementById('menuDropdown').classList.remove('show');
+}
+// Close menu when tapping outside
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('menuDropdown');
+  const btn = document.querySelector('.btn-menu');
+  if(menu && menu.classList.contains('show') && !menu.contains(e.target) && e.target!==btn) {
+    closeMenu();
+  }
+});
+
+function goHome() {
+  closeMenu();
+  doLogout();
+}
+
+function goBack() {
+  // Close any open modal/screen; otherwise go home
+  const notesOpen = document.getElementById('notesOverlay').classList.contains('show');
+  const reportOpen = document.getElementById('reportModal').classList.contains('show');
+  if(notesOpen){ closeNotes(); return; }
+  if(reportOpen){ closeReportModal({target:document.getElementById('reportModal')}); return; }
+  goHome();
+}
+
+function toggleEditMode() {
+  editMode = !editMode;
+  const btn = document.getElementById('editToggleBtn');
+  const banner = document.getElementById('editBanner');
+  if(editMode){ btn.classList.add('active'); btn.textContent='✅ Done'; banner.classList.add('show'); }
+  else { btn.classList.remove('active'); btn.textContent='✏️ Edit'; banner.classList.remove('show'); }
+  renderRooms();
+}
+
+// ════════════════════════════════════
+//  RENDER
+// ════════════════════════════════════
+function renderAll() { renderBuildingTabs(); renderZoneTabs(); renderFloorTabs(); renderRooms(); }
+
+function renderBuildingTabs() {
+  const el = document.getElementById('buildingTabs'); el.innerHTML='';
+  BUILDINGS.forEach(b => {
+    const btn = document.createElement('button');
+    btn.className = 'building-tab '+b.cls+(b.key===currentBuilding?' active':'');
+    btn.textContent = b.label;
+    btn.onclick = () => {
+      currentBuilding = b.key;
+      currentZone = b.zones[0];
+      currentFloor = b.floors[0];
+      renderAll();
+    };
+    el.appendChild(btn);
+  });
+}
+
+function renderZoneTabs() {
+  const el = document.getElementById('zoneTabs'); el.innerHTML='';
+  const bld = getBldObj();
+  // Hide zone tabs for BCI/LTC (only 1 zone)
+  if(!bld || bld.zones.length <= 1) { el.style.display='none'; return; }
+  el.style.display='flex';
+  bld.zones.forEach(z => {
+    const btn = document.createElement('button');
+    btn.className = 'zone-tab'+(z===currentZone?' active '+getBldCls():'');
+    btn.textContent = z;
+    btn.onclick = () => { currentZone=z; currentFloor=bld.floors[0]; renderZoneTabs(); renderFloorTabs(); renderRooms(); };
+    el.appendChild(btn);
+  });
+}
+
+function renderFloorTabs() {
+  const el = document.getElementById('floorTabs'); el.innerHTML='';
+  const bld = getBldObj();
+  (bld?.floors||[]).forEach(f => {
+    const btn = document.createElement('button');
+    btn.className = 'floor-tab'+(f===currentFloor?' active':'');
+    btn.textContent = f;
+    btn.onclick = () => { currentFloor=f; renderFloorTabs(); renderRooms(); };
+    el.appendChild(btn);
+  });
+}
+
+function renderRooms() {
+  const rooms = getRooms();
+  const grid = document.getElementById('roomsGrid'); grid.innerHTML='';
+  let male=0,female=0,vacant=0;
+
+  if(editMode) {
+    rooms.forEach((room,idx) => {
+      const row = document.createElement('div'); row.className='room-card-edit';
+      const inp = document.createElement('input'); inp.className='room-no-input'; inp.value=room; inp.placeholder='Room name';
+      inp.addEventListener('change',() => {
+        const n=inp.value.trim(); if(!n){inp.value=room;return;}
+        const ok=`${currentBuilding}|${currentZone}|${currentFloor}|${room}`;
+        const nk=`${currentBuilding}|${currentZone}|${currentFloor}|${n}`;
+        if(patientData[ok]){patientData[nk]=patientData[ok];delete patientData[ok];}
+        allRooms[currentBuilding][currentZone][currentFloor][idx]=n;
+        saveAll(); renderRooms();
+      });
+      const del = document.createElement('button'); del.className='btn-del-room'; del.textContent='🗑';
+      del.onclick = () => {
+        if(rooms.length<=1){alert('Cannot delete the last room.');return;}
+        allRooms[currentBuilding][currentZone][currentFloor].splice(idx,1);
+        delete patientData[`${currentBuilding}|${currentZone}|${currentFloor}|${room}`];
+        saveAll(); renderRooms();
+      };
+      row.appendChild(inp); row.appendChild(del); grid.appendChild(row);
+    });
+    const addBtn = document.createElement('button'); addBtn.className='btn-add-room'; addBtn.innerHTML='＋ Add Room';
+    addBtn.onclick = () => {
+      allRooms[currentBuilding][currentZone][currentFloor].push('NEW');
+      saveAll(); renderRooms();
+      setTimeout(()=>{const ins=grid.querySelectorAll('.room-no-input');if(ins.length){ins[ins.length-1].focus();ins[ins.length-1].select();}},50);
+    };
+    grid.appendChild(addBtn);
+    document.getElementById('sTot').textContent='-'; document.getElementById('sMale').textContent='-';
+    document.getElementById('sFem').textContent='-'; document.getElementById('sVac').textContent='-';
+  } else {
+    rooms.forEach(room => {
+      const s=getStatus(currentBuilding,currentZone,currentFloor,room);
+      const d=decodeStatus(s);
+      if(s==='V'){ vacant++; }
+      else { if(d.gender==='Male') male++; else if(d.gender==='Female') female++; }
+      const card=document.createElement('div'); card.className=`room-card ${d.cls}`;
+      card.innerHTML=`<div class="room-icon">${d.icon}</div><div class="room-info"><div class="room-no">RM ${room}</div><div class="room-status-text">${d.label}</div></div><div class="room-badge">${d.badge}</div>`;
+      card.onclick=()=>openModal(room); grid.appendChild(card);
+    });
+    const total=rooms.length-vacant;
+    document.getElementById('sTot').textContent=total; document.getElementById('sMale').textContent=male;
+    document.getElementById('sFem').textContent=female; document.getElementById('sVac').textContent=vacant;
+  }
+
+  const bld = getBldObj();
+  const zoneLabel = bld?.zones.length > 1 ? ` · ${currentZone}` : '';
+  document.getElementById('sectionLabel').textContent=`${bld?.key==='BMC'?'BMC':bld?.label||''}${zoneLabel} · ${currentFloor}`;
+}
+
+// ════════════════════════════════════
+//  MODAL
+// ════════════════════════════════════
+function openModal(room) {
+  selectedRoom=room;
+  document.getElementById('modalRoomName').textContent=`RM ${room}`;
+  const cur=getStatus(currentBuilding,currentZone,currentFloor,room);
+  const btns=document.querySelectorAll('.status-btn'); btns.forEach(b=>b.className='status-btn');
+  const d=decodeStatus(cur);
+  if(d.base==='M')   btns[0].classList.add('sel-male');
+  if(d.base==='F')   btns[1].classList.add('sel-female');
+  if(d.base==='V')   btns[2].classList.add('sel-vacant');
+  if(d.base==='P')   btns[3].classList.add('sel-pass');
+  if(d.base==='VIP') btns[4].classList.add('sel-vip');
+  if(d.base==='VVIP')btns[5].classList.add('sel-vvip');
+  if(d.base==='MSN') btns[6].classList.add('sel-mission');
+  document.getElementById('modalOverlay').classList.add('show');
+}
+function closeModal(e){ if(e.target===document.getElementById('modalOverlay')) document.getElementById('modalOverlay').classList.remove('show'); }
+function setStatus(val){ setPatient(currentBuilding,currentZone,currentFloor,selectedRoom,val); document.getElementById('modalOverlay').classList.remove('show'); renderRooms(); }
+
+// ════════════════════════════════════
+//  WHATSAPP REPORT
+// ════════════════════════════════════
+function buildReport() {
+  const rooms=getRooms();
+  let male=0,female=0,vacant=0,occupied=0,pass=0,vip=0,vvip=0,mission=0;
+  const roomLines=[];
+  rooms.forEach(room=>{
+    const s=getStatus(currentBuilding,currentZone,currentFloor,room);
+    const d=decodeStatus(s);
+    if(s==='V'){
+      vacant++;
+    } else {
+      occupied++;
+      if(d.gender==='Male') male++;
+      else if(d.gender==='Female') female++;
+      if(d.base==='P') pass++;
+      else if(d.base==='VIP') vip++;
+      else if(d.base==='VVIP') vvip++;
+      else if(d.base==='MSN') mission++;
+    }
+    let cleanRoom=room;
+    cleanRoom=cleanRoom.replace(/^[A-Z](\d+)$/,'$1');
+    cleanRoom=cleanRoom.replace(/^[A-Z] (ISO)$/,'$1');
+    cleanRoom=cleanRoom.replace(/^(?:BCI|LTC)-/,'');
+    cleanRoom=cleanRoom.replace(/^(?:BCI|LTC) (ISO)$/,'$1');
+    roomLines.push(`RM ${cleanRoom}  -  ${d.label}`);
+  });
+  const bld=getBldObj();
+  const reportBldLabel = bld?.key==='BMC' ? 'BMC' : bld?.label;
+  const zoneLabel=bld?.zones.length>1?currentZone.toUpperCase()+' | ':'';
+  const divider='------------------------';
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  const timeStr = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+
+  const lines = [
+    '*PATIENT STATUS REPORT*',
+    `${reportBldLabel.toUpperCase()} | ${zoneLabel}${currentFloor.toUpperCase()}`,
+    `${dateStr}, ${timeStr}`,
+    divider,
+    '*SUMMARY*',
+    `Total Patients: ${occupied}`,
+    `Male: ${male}   Female: ${female}`,
+    `Vacant Rooms: ${vacant}`,
+    divider,
+    `Out On Pass: ${pass}`,
+    `VIP: ${vip}`,
+    `VVIP: ${vvip}`,
+    `Mission: ${mission}`,
+    divider,
+    '*ROOM STATUS*',
+    ...roomLines
+  ];
+  return lines.join('\n');
+}
+
+
+function openReportModal() {
+  const report = buildReport();
+  document.getElementById('reportPreview').textContent = report;
+  document.getElementById('copyReportBtn').textContent = '📋 Copy';
+  document.getElementById('copyReportBtn').classList.remove('copied');
+  document.getElementById('reportModal').classList.add('show');
+}
+
+function closeReportModal(e) {
+  if(e.target===document.getElementById('reportModal'))
+    document.getElementById('reportModal').classList.remove('show');
+}
+
+function copyReport() {
+  const text = document.getElementById('reportPreview').textContent;
+  const btn = document.getElementById('copyReportBtn');
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent='✅ Copied!'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='📋 Copy'; btn.classList.remove('copied'); },2500);
+  }).catch(()=>{
+    const ta=document.createElement('textarea');
+    ta.value=text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    btn.textContent='✅ Copied!'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='📋 Copy'; btn.classList.remove('copied'); },2500);
+  });
+}
+
+// ════════════════════════════════════
+//  ADMISSION ANNOUNCEMENT
+// ════════════════════════════════════
+let admitGender = 'male';
+
+function getDefaultIP() {
+  const zoneMap = { 'Zone A':'IP4A', 'Zone B':'IP4B', 'Zone C':'IP4C', 'Zone D':'IP4D' };
+  if (currentBuilding === 'BMC') return zoneMap[currentZone] || 'IP4D';
+  if (currentBuilding === 'BCI') return 'BCI';
+  if (currentBuilding === 'LTC') return 'LTC';
+  return 'IP4D';
+}
+
+function openAdmitAnnounce() {
+  // Close the status modal first
+  document.getElementById('modalOverlay').classList.remove('show');
+  // Set room label
+  let cleanRoom = selectedRoom;
+  cleanRoom = cleanRoom.replace(/^[A-Z](\d+)$/, '$1');
+  cleanRoom = cleanRoom.replace(/^[A-Z] (ISO)$/, '$1');
+  cleanRoom = cleanRoom.replace(/^(?:BCI|LTC)-/, '');
+  cleanRoom = cleanRoom.replace(/^(?:BCI|LTC) (ISO)$/, '$1');
+  document.getElementById('admitRoomLabel').textContent = 'RM ' + cleanRoom;
+  document.getElementById('admitIP').value = getDefaultIP();
+  // Auto-detect gender from current room status
+  const s = getStatus(currentBuilding, currentZone, currentFloor, selectedRoom);
+  admitGender = (decodeStatus(s).gender === 'Female') ? 'female' : 'male';
+  document.getElementById('genderMale').classList.toggle('active', admitGender === 'male');
+  document.getElementById('genderFemale').classList.toggle('active', admitGender === 'female');
+  updateAdmitPreview();
+  document.getElementById('admitModal').classList.add('show');
+}
+
+function closeAdmitModal(e) {
+  if(e.target === document.getElementById('admitModal'))
+    document.getElementById('admitModal').classList.remove('show');
+}
+
+function selectGender(g) {
+  admitGender = g;
+  document.getElementById('genderMale').classList.toggle('active', g==='male');
+  document.getElementById('genderFemale').classList.toggle('active', g==='female');
+  updateAdmitPreview();
+}
+
+function getAdmitMessage() {
+  let cleanRoom = selectedRoom;
+  cleanRoom = cleanRoom.replace(/^[A-Z](\d+)$/, '$1');
+  cleanRoom = cleanRoom.replace(/^[A-Z] (ISO)$/, '$1');
+  cleanRoom = cleanRoom.replace(/^(?:BCI|LTC)-/, '');
+  cleanRoom = cleanRoom.replace(/^(?:BCI|LTC) (ISO)$/, '$1');
+  const ip = document.getElementById('admitIP').value.trim() || 'IP___';
+  const genderText = admitGender === 'male' ? 'Male' : 'Female';
+  return `🏥 *NEW PATIENT ADMITTED*\n*${ip}* — Room No. *${cleanRoom}*\n${genderText} patient admitted.`;
+}
+
+function updateAdmitPreview() {
+  document.getElementById('admitPreview').textContent = getAdmitMessage();
+}
+
+// Combined init listener
+document.addEventListener('DOMContentLoaded', ()=>{
+  const admitInp = document.getElementById('admitIP');
+  if(admitInp) admitInp.addEventListener('input', updateAdmitPreview);
+  const trnInp = document.getElementById('trnIP');
+  if(trnInp) trnInp.addEventListener('input', updateTrnPreview);
+  const nd = document.getElementById('notesDate');
+  if(nd) nd.addEventListener('change', renderNotes);
+});
+
+function copyAdmission() {
+  const text = getAdmitMessage();
+  const btn = document.getElementById('copyAdmitBtn');
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent='✅ Copied!'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='📋 Copy'; btn.classList.remove('copied'); },2500);
+  }).catch(()=>{
+    const ta=document.createElement('textarea');
+    ta.value=text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    btn.textContent='✅ Copied!'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='📋 Copy'; btn.classList.remove('copied'); },2500);
+  });
+}
+
+function confirmAdmission() {
+  // Also set the room to Male or Female automatically
+  const val = admitGender === 'male' ? 'M' : 'F';
+  setPatient(currentBuilding, currentZone, currentFloor, selectedRoom, val);
+  document.getElementById('admitModal').classList.remove('show');
+  renderRooms();
+}
+
+// ════════════════════════════════════
+//  DISCHARGE MESSAGE
+// ════════════════════════════════════
+let dischGender = 'male';
+
+function openDischargeMsg() {
+  document.getElementById('modalOverlay').classList.remove('show');
+  document.getElementById('dischRoomLabel').textContent = 'RM ' + cleanRoomNo(selectedRoom);
+  document.getElementById('dischIP').value = getDefaultIP();
+  // Auto-detect gender from current room status
+  const s = getStatus(currentBuilding, currentZone, currentFloor, selectedRoom);
+  const d = decodeStatus(s);
+  dischGender = (d.gender === 'Female') ? 'female' : 'male';
+  document.getElementById('dischGenderMale').classList.toggle('active', dischGender === 'male');
+  document.getElementById('dischGenderFemale').classList.toggle('active', dischGender === 'female');
+  updateDischPreview();
+  document.getElementById('dischargeModal').classList.add('show');
+}
+
+function closeDischModal(e) {
+  if(e.target === document.getElementById('dischargeModal'))
+    document.getElementById('dischargeModal').classList.remove('show');
+}
+
+function selectDischGender(g) {
+  dischGender = g;
+  document.getElementById('dischGenderMale').classList.toggle('active', g==='male');
+  document.getElementById('dischGenderFemale').classList.toggle('active', g==='female');
+  updateDischPreview();
+}
+
+function getDischMessage() {
+  const ip = document.getElementById('dischIP').value.trim() || 'IP___';
+  const gender = dischGender === 'male' ? 'Male' : 'Female';
+  return `🚪 *PATIENT DISCHARGED*\n*${ip}* — Room No. *${cleanRoomNo(selectedRoom)}*\n${gender} patient discharged.`;
+}
+
+function updateDischPreview() {
+  const el = document.getElementById('dischPreview');
+  if(el) el.textContent = getDischMessage();
+}
+
+function copyDischMsg() {
+  const text = getDischMessage();
+  const btn = document.getElementById('copyDischBtn');
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent='✅ Copied!'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='📋 Copy'; btn.classList.remove('copied'); },2500);
+  }).catch(()=>{
+    const ta=document.createElement('textarea');
+    ta.value=text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    btn.textContent='✅ Copied!'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='📋 Copy'; btn.classList.remove('copied'); },2500);
+  });
+}
+
+function confirmDischarge() {
+  setPatient(currentBuilding, currentZone, currentFloor, selectedRoom, 'V');
+  document.getElementById('dischargeModal').classList.remove('show');
+  renderRooms();
+}
+
+// ════════════════════════════════════
+//  LUGGAGE REQUEST MESSAGE
+// ════════════════════════════════════
+function openLuggageMsg() {
+  document.getElementById('modalOverlay').classList.remove('show');
+  document.getElementById('luggageRoomLabel').textContent = 'RM ' + cleanRoomNo(selectedRoom);
+  document.getElementById('luggageIP').value = getDefaultIP();
+  updateLuggagePreview();
+  document.getElementById('luggageModal').classList.add('show');
+}
+
+function closeLuggageModal(e) {
+  if(e.target === document.getElementById('luggageModal'))
+    document.getElementById('luggageModal').classList.remove('show');
+}
+
+function closeLuggageModalDirect() {
+  document.getElementById('luggageModal').classList.remove('show');
+}
+
+function getLuggageMessage() {
+  const ip = document.getElementById('luggageIP').value.trim() || 'IP___';
+  return `Trolley Request – ${ip}\nKindly send a porter with a trolley to ${ip}, Room No. ${cleanRoomNo(selectedRoom)} for luggage. Thank you.`;
+}
+
+function updateLuggagePreview() {
+  const el = document.getElementById('luggagePreview');
+  if(el) el.textContent = getLuggageMessage();
+}
+
+function copyLuggageMsg() {
+  const text = getLuggageMessage();
+  const btn = document.getElementById('copyLuggageBtn');
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent='✅ Copied!'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='📋 Copy'; btn.classList.remove('copied'); },2500);
+  }).catch(()=>{
+    const ta=document.createElement('textarea');
+    ta.value=text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    btn.textContent='✅ Copied!'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='📋 Copy'; btn.classList.remove('copied'); },2500);
+  });
+}
+
+// ════════════════════════════════════
+//  TRANSPORT MESSAGE
+// ════════════════════════════════════
+let trnState = { gender:'male', dest:'OT', mode:'wheelchair', lift:'D1' };
+
+function cleanRoomNo(room) {
+  let r = room;
+  r = r.replace(/^[A-Z](\d+)$/, '$1');
+  r = r.replace(/^[A-Z] (ISO)$/, '$1');
+  r = r.replace(/^(?:BCI|LTC)-/, '');
+  r = r.replace(/^(?:BCI|LTC) (ISO)$/, '$1');
+  return r;
+}
+
+function openTransportMsg() {
+  document.getElementById('modalOverlay').classList.remove('show');
+  document.getElementById('trnRoomLabel').textContent = 'RM ' + cleanRoomNo(selectedRoom);
+  document.getElementById('trnIP').value = getDefaultIP();
+
+  // Determine lift prefix based on current zone/building
+  const liftPrefixMap = {
+    'Zone A': 'A', 'Zone B': 'B', 'Zone C': 'C', 'Zone D': 'D',
+    'BCI': 'B', 'LTC': 'L'
+  };
+  const prefix = liftPrefixMap[currentZone] || 'D';
+  const lifts = [prefix+'1', prefix+'2', prefix+'3', prefix+'4'];
+  const defaultLift = lifts[0];
+  const roomStatus = getStatus(currentBuilding, currentZone, currentFloor, selectedRoom);
+  const autoGender = (decodeStatus(roomStatus).gender === 'Female') ? 'female' : 'male';
+  trnState = { gender: autoGender, dest:'OT', mode:'wheelchair', lift: defaultLift };
+
+  // Reset all chips first (including lift wrap, before we rebuild it)
+  document.querySelectorAll('#transportModal .sel-chip').forEach(b => b.classList.remove('active'));
+
+  // Render lift chips dynamically
+  const liftWrap = document.getElementById('liftChips');
+  liftWrap.innerHTML = '';
+  lifts.forEach((l, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'sel-chip' + (i === 0 ? ' active' : '');
+    btn.textContent = l;
+    btn.setAttribute('onclick', `trnSelect('lift','${l}',this)`);
+    liftWrap.appendChild(btn);
+  });
+
+  // Activate defaults
+  document.getElementById('trnGenderM').classList.toggle('active', autoGender === 'male');
+  document.getElementById('trnGenderF').classList.toggle('active', autoGender === 'female');
+  const firstDest = document.querySelector(`#transportModal .sel-chip[onclick*="trnSelect('dest'"]`);
+  if(firstDest) firstDest.classList.add('active');
+  const firstMode = document.querySelector(`#transportModal .sel-chip[onclick*="trnSelect('mode'"]`);
+  if(firstMode) firstMode.classList.add('active');
+
+  updateTrnPreview();
+  document.getElementById('transportModal').classList.add('show');
+}
+
+function closeTrnModal(e) {
+  if(e.target === document.getElementById('transportModal'))
+    document.getElementById('transportModal').classList.remove('show');
+}
+function closeTrnModalDirect() {
+  document.getElementById('transportModal').classList.remove('show');
+}
+
+function trnSelect(field, value, el) {
+  document.querySelectorAll(`#transportModal .sel-chip[onclick*="trnSelect('${field}'"]`).forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  trnState[field] = value;
+  updateTrnPreview();
+}
+
+function getTrnMessage() {
+  const ip = document.getElementById('trnIP').value.trim() || 'IP___';
+  const gender = trnState.gender === 'male' ? 'Male' : 'Female';
+  return `*${ip}*, Room No. *${cleanRoomNo(selectedRoom)}*: ${gender} patient is going down to *${trnState.dest}* via *${trnState.lift}* lift on a *${trnState.mode}*, accompanied by a nurse and a porter.`;
+}
+
+function updateTrnPreview() {
+  const el = document.getElementById('trnPreview');
+  if(el) el.textContent = getTrnMessage();
+}
+
+function copyTrnMsg() {
+  const text = getTrnMessage();
+  const btn = document.getElementById('copyTrnBtn');
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent='✅ Copied!'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='📋 Copy'; btn.classList.remove('copied'); },2500);
+  }).catch(()=>{
+    const ta=document.createElement('textarea');
+    ta.value=text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    btn.textContent='✅ Copied!'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='📋 Copy'; btn.classList.remove('copied'); },2500);
+  });
+}
+
+
+let currentShift = 'day';
+let currentEntryType = 'admission';
+let notesData = {}; // key: "BMC|Zone A|Ground|2025-01-01|day" → {admission:[],discharge:[],shift:[],transport:[]}
+
+function notesKey() {
+  const date = document.getElementById('notesDate').value;
+  return `${currentBuilding}|${currentZone}|${currentFloor}|${date}|${currentShift}`;
+}
+
+function loadNotes() {
+  try { notesData = JSON.parse(localStorage.getItem('bmc_notes_v1')||'{}'); } catch(e){ notesData={}; }
+}
+
+function saveNotes() {
+  try { localStorage.setItem('bmc_notes_v1', JSON.stringify(notesData)); } catch(e){}
+}
+
+function getNoteEntries(type) {
+  const key = notesKey();
+  if(!notesData[key]) notesData[key]={admission:[],discharge:[],shift:[],transport:[]};
+  return notesData[key][type]||[];
+}
+
+function openNotes() {
+  loadNotes();
+  // Set today's date
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('notesDate').value = today;
+  // Auto-detect shift from current hour
+  const h = new Date().getHours();
+  selectShift((h >= 7 && h < 19) ? 'day' : 'night');
+  // Update location label
+  const bld = getBldObj();
+  const zoneLabel = bld?.zones.length > 1 ? ` · ${currentZone}` : '';
+  const notesLabel = bld?.key==='BMC' ? 'BMC' : bld?.label;
+  document.getElementById('notesLocationLabel').textContent = `${notesLabel}${zoneLabel} · ${currentFloor}`;
+  document.getElementById('notesOverlay').classList.add('show');
+  renderNotes();
+}
+
+function closeNotes() {
+  document.getElementById('notesOverlay').classList.remove('show');
+}
+
+function selectShift(s) {
+  currentShift = s;
+  document.getElementById('shiftDay').classList.toggle('active', s==='day');
+  document.getElementById('shiftNight').classList.toggle('active', s==='night');
+  renderNotes();
+}
+
+function setEntryType(t) {
+  currentEntryType = t;
+  document.querySelectorAll('.etype-btn').forEach(b => b.classList.toggle('active', b.dataset.type===t));
+  ['admission','discharge','shift','transport'].forEach(type => {
+    document.getElementById('fields-'+type).classList.toggle('hidden', type!==t);
+  });
+}
+
+function addEntry(type) {
+  const key = notesKey();
+  if(!notesData[key]) notesData[key]={admission:[],discharge:[],shift:[],transport:[]};
+  let entry = {};
+  if(type==='admission'){
+    const room=document.getElementById('adm-room').value.trim();
+    const time=document.getElementById('adm-time').value.trim();
+    if(!room||!time){alert('Please fill Room No. and Time.');return;}
+    entry={room,time,text:`Room ${room} — Admitted at ${time}hrs`};
+    document.getElementById('adm-room').value=''; document.getElementById('adm-time').value='';
+  } else if(type==='discharge'){
+    const room=document.getElementById('dis-room').value.trim();
+    const time=document.getElementById('dis-time').value.trim();
+    if(!room||!time){alert('Please fill Room No. and Time.');return;}
+    entry={room,time,text:`Room ${room} — Discharged at ${time}hrs`};
+    document.getElementById('dis-room').value=''; document.getElementById('dis-time').value='';
+  } else if(type==='shift'){
+    const from=document.getElementById('shf-from').value.trim();
+    const to=document.getElementById('shf-to').value.trim();
+    const time=document.getElementById('shf-time').value.trim();
+    if(!from||!to||!time){alert('Please fill From Room, To Room and Time.');return;}
+    entry={from,to,time,text:`Shifted from Room ${from} to Room ${to} at ${time}hrs`};
+    document.getElementById('shf-from').value=''; document.getElementById('shf-to').value=''; document.getElementById('shf-time').value='';
+  } else if(type==='transport'){
+    const room=document.getElementById('trn-room').value.trim();
+    const time=document.getElementById('trn-time').value.trim();
+    const dest=document.getElementById('trn-dest').value;
+    if(!room||!time){alert('Please fill Room No. and Time.');return;}
+    entry={room,time,dest,text:`Room ${room} — Taken to ${dest} at ${time}hrs`};
+    document.getElementById('trn-room').value=''; document.getElementById('trn-time').value='';
+  }
+  entry.id = Date.now();
+  notesData[key][type].push(entry);
+  saveNotes();
+  renderNotes();
+}
+
+function deleteEntry(type, id) {
+  const key = notesKey();
+  if(!notesData[key]) return;
+  notesData[key][type] = notesData[key][type].filter(e => e.id !== id);
+  saveNotes();
+  renderNotes();
+}
+
+function renderNotes() {
+  const types = ['admission','discharge','shift','transport'];
+  let totalCount = 0;
+  types.forEach(type => {
+    const entries = getNoteEntries(type);
+    const list = document.getElementById('list-'+type);
+    const sec  = document.getElementById('sec-'+type);
+    list.innerHTML='';
+    if(entries.length===0){ sec.style.display='none'; return; }
+    sec.style.display='block'; totalCount+=entries.length;
+    entries.forEach(e => {
+      const item=document.createElement('div'); item.className=`rec-item ${type}`;
+      item.innerHTML=`<div class="rec-text">${e.text}</div><button class="rec-del" onclick="deleteEntry('${type}',${e.id})">🗑</button>`;
+      list.appendChild(item);
+    });
+  });
+  document.getElementById('recEmpty').style.display = totalCount===0 ? 'block' : 'none';
+
+  // Update title
+  const date = document.getElementById('notesDate').value;
+  const shiftLabel = currentShift==='day' ? 'Day Shift' : 'Night Shift';
+  document.getElementById('recTitle').textContent = `${date} · ${shiftLabel}`;
+}
+
+
+
+function copyNotes() {
+  const types = ['admission','discharge','shift','transport'];
+  const typeLabels = {admission:'ADMISSIONS',discharge:'DISCHARGES',shift:'ROOM SHIFTS',transport:'TRANSPORTS'};
+  const bld = getBldObj();
+  const zoneLabel = bld?.zones.length > 1 ? ` | ${currentZone.toUpperCase()}` : '';
+  const shiftLabel = currentShift==='day' ? 'DAY SHIFT' : 'NIGHT SHIFT';
+  const date = document.getElementById('notesDate').value;
+  let lines = [];
+  lines.push('FLOOR NOTES');
+  lines.push(`${(bld?.key==='BMC' ? 'BMC' : bld?.label).toUpperCase()}${zoneLabel} | ${currentFloor.toUpperCase()}`);
+  lines.push(`Date: ${date} | ${shiftLabel}`);
+  lines.push('────────────────');
+  let hasData = false;
+  types.forEach(type => {
+    const entries = getNoteEntries(type);
+    if(entries.length===0) return;
+    hasData = true;
+    lines.push('');
+    lines.push(typeLabels[type]+':');
+    entries.forEach(e => lines.push('• '+e.text));
+  });
+  if(!hasData){ alert('No records to copy yet.'); return; }
+  const text = lines.join('\n');
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn=document.getElementById('copyBtn');
+    btn.textContent='✅ Copied!';
+    setTimeout(()=>btn.textContent='📋 Copy',2000);
+  }).catch(()=>{
+    // Fallback
+    const ta=document.createElement('textarea');
+    ta.value=text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    const btn=document.getElementById('copyBtn');
+    btn.textContent='✅ Copied!';
+    setTimeout(()=>btn.textContent='📋 Copy',2000);
+  });
+}
+</script>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  GITHUB MANUAL SYNC — upload only happens when the user taps
+//  "Sync to GitHub". Nothing here runs automatically or on a
+//  timer/interval; there is no background sync of any kind.
+// ════════════════════════════════════════════════════════════
+const GH_SETTINGS_KEY = 'bmc_gh_settings_v1';
+
+function loadGithubSettings() {
+  try { return JSON.parse(localStorage.getItem(GH_SETTINGS_KEY) || '{}'); }
+  catch(e) { return {}; }
+}
+function saveGithubSettingsObj(obj) {
+  try { localStorage.setItem(GH_SETTINGS_KEY, JSON.stringify(obj)); } catch(e) {}
+}
+
+function openGithubSettings() {
+  const s = loadGithubSettings();
+  document.getElementById('ghOwner').value  = s.owner  || '';
+  document.getElementById('ghRepo').value   = s.repo   || '';
+  document.getElementById('ghBranch').value = s.branch || 'main';
+  document.getElementById('ghPath').value   = s.path   || 'data/bmc-data.json';
+  document.getElementById('ghToken').value  = s.token  || '';
+  document.getElementById('ghLastSynced').textContent = s.lastSynced
+    ? ('Last synced: ' + new Date(s.lastSynced).toLocaleString())
+    : 'Never synced from this device.';
+  document.getElementById('githubSettingsModal').classList.add('show');
+}
+function closeGithubSettings(e) {
+  if (!e || e.target === document.getElementById('githubSettingsModal'))
+    document.getElementById('githubSettingsModal').classList.remove('show');
+}
+function saveGithubSettings() {
+  const existing = loadGithubSettings();
+  const s = {
+    owner:  document.getElementById('ghOwner').value.trim(),
+    repo:   document.getElementById('ghRepo').value.trim(),
+    branch: document.getElementById('ghBranch').value.trim() || 'main',
+    path:   document.getElementById('ghPath').value.trim() || 'data/bmc-data.json',
+    token:  document.getElementById('ghToken').value.trim(),
+    lastSynced: existing.lastSynced || null
+  };
+  saveGithubSettingsObj(s);
+  alert('✅ GitHub sync settings saved on this device.');
+  document.getElementById('githubSettingsModal').classList.remove('show');
+}
+
+// UTF-8 safe base64 encode/decode helpers
+function utf8ToBase64(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
+function base64ToUtf8(b64) {
+  return decodeURIComponent(escape(atob(b64)));
+}
+
+async function syncToGithub() {
+  const s = loadGithubSettings();
+  if (!s.owner || !s.repo || !s.token) {
+    alert('⚠️ Please set up GitHub Sync Settings first (Menu → GitHub Sync Settings).');
+    openGithubSettings();
+    return;
+  }
+  const branch = s.branch || 'main';
+  const path = s.path || 'data/bmc-data.json';
+  const apiUrl = `https://api.github.com/repos/${s.owner}/${s.repo}/contents/${encodeURI(path)}`;
+  const headers = {
+    'Authorization': 'Bearer ' + s.token,
+    'Accept': 'application/vnd.github+json'
+  };
+
+  try {
+    // Look up existing file sha (needed to update rather than create)
+    let sha = null;
+    try {
+      const getResp = await fetch(apiUrl + '?ref=' + encodeURIComponent(branch), { headers });
+      if (getResp.ok) {
+        const getJson = await getResp.json();
+        sha = getJson.sha || null;
+      }
+    } catch(e) { /* file may not exist yet — that's fine */ }
+
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      rooms: allRooms,
+      patients: patientData,
+      notes: notesData
+    };
+    const content = utf8ToBase64(JSON.stringify(payload, null, 2));
+
+    const body = {
+      message: 'Manual sync from BMC Patient Status app — ' + new Date().toLocaleString(),
+      content: content,
+      branch: branch
+    };
+    if (sha) body.sha = sha;
+
+    const putResp = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (!putResp.ok) {
+      const errJson = await putResp.json().catch(()=>({}));
+      throw new Error(errJson.message || ('GitHub responded with status ' + putResp.status));
+    }
+
+    s.lastSynced = new Date().toISOString();
+    saveGithubSettingsObj(s);
+    alert('✅ Synced to GitHub successfully.\n' + s.owner + '/' + s.repo + ' → ' + path);
+  } catch(err) {
+    alert('❌ GitHub sync failed: ' + err.message + '\n\nYour data is still safe on this device — nothing was lost.');
+  }
+}
+
+// Optional manual restore — only runs when explicitly triggered by the user,
+// never automatically.
+async function restoreFromGithub() {
+  const s = loadGithubSettings();
+  if (!s.owner || !s.repo || !s.token) {
+    alert('⚠️ Please set up GitHub Sync Settings first (Menu → GitHub Sync Settings).');
+    openGithubSettings();
+    return;
+  }
+  if (!confirm('This will overwrite the data on this device with the version stored on GitHub. Continue?')) return;
+  const branch = s.branch || 'main';
+  const path = s.path || 'data/bmc-data.json';
+  const apiUrl = `https://api.github.com/repos/${s.owner}/${s.repo}/contents/${encodeURI(path)}?ref=${encodeURIComponent(branch)}`;
+  const headers = { 'Authorization': 'Bearer ' + s.token, 'Accept': 'application/vnd.github+json' };
+  try {
+    const resp = await fetch(apiUrl, { headers });
+    if (!resp.ok) throw new Error('GitHub responded with status ' + resp.status);
+    const json = await resp.json();
+    const decoded = base64ToUtf8(json.content.replace(/\n/g,''));
+    const payload = JSON.parse(decoded);
+    allRooms = payload.rooms || allRooms;
+    patientData = payload.patients || patientData;
+    notesData = payload.notes || notesData;
+    saveAll(); saveNotes();
+    renderAll();
+    alert('✅ Data restored from GitHub.');
+  } catch(err) {
+    alert('❌ Restore failed: ' + err.message);
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+//  EXCEL EXPORT — dependency-free .xlsx writer (no CDN/library
+//  needed, so this works fully offline). Produces a real ZIP +
+//  OOXML workbook Excel can open directly.
+// ════════════════════════════════════════════════════════════
+
+// ---- CRC32 (needed for ZIP entries) ----
+const _crcTable = (() => {
+  let c, table = [];
+  for (let n = 0; n < 256; n++) {
+    c = n;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    table[n] = c >>> 0;
+  }
+  return table;
+})();
+function crc32(bytes) {
+  let crc = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++) crc = _crcTable[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+function strToBytes(str) { return new TextEncoder().encode(str); }
+
+// ---- Minimal ZIP writer (store method — no compression needed) ----
+function buildZip(entries) {
+  // entries: [{ name, data: Uint8Array }]
+  const localParts = [];
+  const centralParts = [];
+  let offset = 0;
+  const dosTime = 0, dosDate = 0x21; // fixed nominal timestamp
+
+  entries.forEach(entry => {
+    const nameBytes = strToBytes(entry.name);
+    const data = entry.data;
+    const crc = crc32(data);
+    const size = data.length;
+
+    const localHeader = new Uint8Array(30 + nameBytes.length);
+    const lv = new DataView(localHeader.buffer);
+    lv.setUint32(0, 0x04034b50, true);
+    lv.setUint16(4, 20, true);
+    lv.setUint16(6, 0, true);
+    lv.setUint16(8, 0, true); // store, no compression
+    lv.setUint16(10, dosTime, true);
+    lv.setUint16(12, dosDate, true);
+    lv.setUint32(14, crc, true);
+    lv.setUint32(18, size, true);
+    lv.setUint32(22, size, true);
+    lv.setUint16(26, nameBytes.length, true);
+    lv.setUint16(28, 0, true);
+    localHeader.set(nameBytes, 30);
+
+    localParts.push(localHeader, data);
+
+    const central = new Uint8Array(46 + nameBytes.length);
+    const cv = new DataView(central.buffer);
+    cv.setUint32(0, 0x02014b50, true);
+    cv.setUint16(4, 20, true);
+    cv.setUint16(6, 20, true);
+    cv.setUint16(8, 0, true);
+    cv.setUint16(10, 0, true);
+    cv.setUint16(12, dosTime, true);
+    cv.setUint16(14, dosDate, true);
+    cv.setUint32(16, crc, true);
+    cv.setUint32(20, size, true);
+    cv.setUint32(24, size, true);
+    cv.setUint16(28, nameBytes.length, true);
+    cv.setUint16(30, 0, true);
+    cv.setUint16(32, 0, true);
+    cv.setUint16(34, 0, true);
+    cv.setUint16(36, 0, true);
+    cv.setUint32(38, 0, true);
+    cv.setUint32(42, offset, true);
+    central.set(nameBytes, 46);
+    centralParts.push(central);
+
+    offset += localHeader.length + data.length;
+  });
+
+  const centralSize = centralParts.reduce((a,p)=>a+p.length,0);
+  const centralOffset = offset;
+
+  const end = new Uint8Array(22);
+  const ev = new DataView(end.buffer);
+  ev.setUint32(0, 0x06054b50, true);
+  ev.setUint16(4, 0, true);
+  ev.setUint16(6, 0, true);
+  ev.setUint16(8, entries.length, true);
+  ev.setUint16(10, entries.length, true);
+  ev.setUint32(12, centralSize, true);
+  ev.setUint32(16, centralOffset, true);
+  ev.setUint16(20, 0, true);
+
+  const totalSize = offset + centralSize + end.length;
+  const out = new Uint8Array(totalSize);
+  let pos = 0;
+  localParts.forEach(p => { out.set(p, pos); pos += p.length; });
+  centralParts.forEach(p => { out.set(p, pos); pos += p.length; });
+  out.set(end, pos);
+  return out;
+}
+
+function xmlEscape(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;' }[c]));
+}
+function colName(n) {
+  let s = '';
+  n = n + 1;
+  while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); }
+  return s;
+}
+
+// sheetRows: array of arrays. headerRowCount rows get the bold style (s="1").
+function sheetXml(sheetRows, headerRowCount) {
+  let rowsXml = '';
+  sheetRows.forEach((row, ri) => {
+    const isHeader = ri < headerRowCount;
+    let cellsXml = '';
+    row.forEach((val, ci) => {
+      const ref = colName(ci) + (ri + 1);
+      const styleAttr = isHeader ? ' s="1"' : '';
+      if (typeof val === 'number' && isFinite(val)) {
+        cellsXml += `<c r="${ref}"${styleAttr}><v>${val}</v></c>`;
+      } else {
+        const text = xmlEscape(val === null || val === undefined ? '' : String(val));
+        cellsXml += `<c r="${ref}" t="inlineStr"${styleAttr}><is><t xml:space="preserve">${text}</t></is></c>`;
+      }
+    });
+    rowsXml += `<row r="${ri+1}">${cellsXml}</row>`;
+  });
+  const colCount = Math.max(1, ...sheetRows.map(r => r.length));
+  const cols = `<cols>${Array.from({length: colCount}).map((_,i)=>`<col min="${i+1}" max="${i+1}" width="20" customWidth="1"/>`).join('')}</cols>`;
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${rowsXml}</sheetData></worksheet>`
+    .replace('<sheetData>', cols + '<sheetData>');
+}
+
+function buildXlsxBlob(sheets) {
+  // sheets: [{ name, rows, headerRowCount }]
+  const contentTypesOverrides = sheets.map((s,i)=>
+    `<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`
+  ).join('');
+  const contentTypes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
+${contentTypesOverrides}
+</Types>`;
+
+  const rootRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>`;
+
+  const sheetsXmlList = sheets.map((s,i)=>
+    `<sheet name="${xmlEscape(s.name).slice(0,31)}" sheetId="${i+1}" r:id="rId${i+1}"/>`
+  ).join('');
+  const workbook = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheets>${sheetsXmlList}</sheets>
+</workbook>`;
+
+  const workbookRelsList = sheets.map((s,i)=>
+    `<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`
+  ).join('') + `<Relationship Id="rIdStyles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>`;
+  const workbookRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+${workbookRelsList}
+</Relationships>`;
+
+  const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<fonts count="2">
+  <font><sz val="11"/><name val="Calibri"/></font>
+  <font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>
+</fonts>
+<fills count="3">
+  <fill><patternFill patternType="none"/></fill>
+  <fill><patternFill patternType="gray125"/></fill>
+  <fill><patternFill patternType="solid"><fgColor rgb="FF0EA5E9"/><bgColor indexed="64"/></patternFill></fill>
+</fills>
+<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="2">
+  <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+  <xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>
+</cellXfs>
+<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
+</styleSheet>`;
+
+  const files = [
+    { name: '[Content_Types].xml', data: strToBytes(contentTypes) },
+    { name: '_rels/.rels', data: strToBytes(rootRels) },
+    { name: 'xl/workbook.xml', data: strToBytes(workbook) },
+    { name: 'xl/_rels/workbook.xml.rels', data: strToBytes(workbookRels) },
+    { name: 'xl/styles.xml', data: strToBytes(styles) }
+  ];
+  sheets.forEach((s,i) => {
+    files.push({ name: `xl/worksheets/sheet${i+1}.xml`, data: strToBytes(sheetXml(s.rows, s.headerRowCount || 1)) });
+  });
+
+  const zipBytes = buildZip(files);
+  return new Blob([zipBytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+
+// ---- Data collectors ----
+function collectCensusRows() {
+  const rows = [['Building','Zone','Floor','Room','Status Code','Status','Gender']];
+  BUILDINGS.forEach(b => {
+    b.zones.forEach(zone => {
+      b.floors.forEach(floor => {
+        const rooms = ((allRooms[b.key]||{})[zone]||{})[floor] || [];
+        rooms.forEach(room => {
+          const code = getStatus(b.key, zone, floor, room);
+          const d = decodeStatus(code);
+          rows.push([b.label || b.key, zone, floor, room, code, d.label, d.gender || '']);
+        });
+      });
+    });
+  });
+  return rows;
+}
+function collectNotesRows() {
+  const rows = [['Date/Shift Key','Type','Note']];
+  Object.keys(notesData || {}).forEach(key => {
+    const entry = notesData[key];
+    ['admission','discharge','shift','transport'].forEach(type => {
+      (entry[type] || []).forEach(e => rows.push([key, type, e.text]));
+    });
+  });
+  return rows;
+}
+function collectSummaryRows() {
+  const rows = [['Building','Zone','Floor','Total Rooms','Male','Female','Vacant','Other (Pass/VIP/VVIP/Mission)']];
+  BUILDINGS.forEach(b => {
+    b.zones.forEach(zone => {
+      b.floors.forEach(floor => {
+        const rooms = ((allRooms[b.key]||{})[zone]||{})[floor] || [];
+        let male=0, female=0, vacant=0, other=0;
+        rooms.forEach(room => {
+          const code = getStatus(b.key, zone, floor, room);
+          if (code === 'M') male++;
+          else if (code === 'F') female++;
+          else if (code === 'V') vacant++;
+          else other++;
+        });
+        rows.push([b.label || b.key, zone, floor, rooms.length, male, female, vacant, other]);
+      });
+    });
+  });
+  return rows;
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+
+let pendingXlsxBlob = null, pendingXlsxFilename = '';
+
+function openXlsxModal(title, desc, blob, filename) {
+  pendingXlsxBlob = blob;
+  pendingXlsxFilename = filename;
+  document.getElementById('xlsxModalTitle').textContent = title;
+  document.getElementById('xlsxModalDesc').textContent = desc;
+  document.getElementById('xlsxModal').classList.add('show');
+}
+function closeXlsxModal(e) {
+  if (!e || e.target === document.getElementById('xlsxModal'))
+    document.getElementById('xlsxModal').classList.remove('show');
+}
+function downloadPendingXlsx() {
+  if (!pendingXlsxBlob) return;
+  downloadBlob(pendingXlsxBlob, pendingXlsxFilename);
+}
+async function sharePendingXlsx() {
+  if (!pendingXlsxBlob) return;
+  const file = new File([pendingXlsxBlob], pendingXlsxFilename, { type: pendingXlsxBlob.type });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: pendingXlsxFilename });
+      return;
+    } catch(err) {
+      if (err.name === 'AbortError') return; // user cancelled — no need to alert
+    }
+  }
+  alert("Sharing isn't supported on this device/browser — downloading the file instead so you can share it manually.");
+  downloadPendingXlsx();
+}
+
+// ════════════════════════════════════
+//  EXPORT TO EXCEL (raw data dump)
+// ════════════════════════════════════
+function exportToExcel() {
+  const filename = `BMC_Data_Export_${new Date().toISOString().slice(0,10)}.xlsx`;
+  const blob = buildXlsxBlob([
+    { name: 'Census', rows: collectCensusRows(), headerRowCount: 1 },
+    { name: 'Floor Notes', rows: collectNotesRows(), headerRowCount: 1 }
+  ]);
+  openXlsxModal('EXPORT READY', 'All room census data and floor notes have been compiled into an Excel file.', blob, filename);
+}
+
+// Standalone "Share Excel" entry point — exports fresh data and
+// immediately opens the device share sheet.
+async function shareExcel() {
+  const filename = `BMC_Data_Export_${new Date().toISOString().slice(0,10)}.xlsx`;
+  const blob = buildXlsxBlob([
+    { name: 'Census', rows: collectCensusRows(), headerRowCount: 1 },
+    { name: 'Floor Notes', rows: collectNotesRows(), headerRowCount: 1 }
+  ]);
+  openXlsxModal('EXPORT READY', 'Your data export is ready. Download it or share it directly.', blob, filename);
+  await sharePendingXlsx();
+}
+
+// ════════════════════════════════════
+//  GENERATE EXCEL REPORT (formatted, ready to send)
+// ════════════════════════════════════
+function generateExcelReport() {
+  const now = new Date();
+  const filename = `BMC_Patient_Report_${now.toISOString().slice(0,10)}.xlsx`;
+  const summaryHeader = [
+    ['BMC PATIENT STATUS REPORT'],
+    ['Generated: ' + now.toLocaleString()],
+    ['']
+  ];
+  const summaryRows = summaryHeader.concat(collectSummaryRows());
+  const blob = buildXlsxBlob([
+    { name: 'Summary', rows: summaryRows, headerRowCount: 4 },
+    { name: 'Full Census', rows: collectCensusRows(), headerRowCount: 1 },
+    { name: 'Floor Notes', rows: collectNotesRows(), headerRowCount: 1 }
+  ]);
+  openXlsxModal('REPORT READY', 'A formatted Excel report (summary, full census & floor notes) is ready to download or share.', blob, filename);
+}
+</script>
+
+<script>
+// ════════════════════════════════════
+//  SERVICE WORKER — Full Offline Support
+// ════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  const swCode = `
+const CACHE = 'bmc-v1';
+self.addEventListener('install', e => {
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(self.clients.claim());
+});
+self.addEventListener('fetch', e => {
+  // Cache Google Fonts on first load, serve from cache offline
+  if (e.request.url.includes('fonts.googleapis.com') || e.request.url.includes('fonts.gstatic.com')) {
+    e.respondWith(
+      caches.open(CACHE).then(cache =>
+        cache.match(e.request).then(cached =>
+          cached || fetch(e.request).then(resp => { cache.put(e.request, resp.clone()); return resp; }).catch(() => cached)
+        )
+      )
+    );
+    return;
+  }
+  // For everything else — network first, fallback to cache
+  e.respondWith(
+    fetch(e.request).catch(() => caches.match(e.request))
+  );
+});
+  `;
+  const blob = new Blob([swCode], {type: 'application/javascript'});
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(() => {});
+}
+
+// ════════════════════════════════════
+//  INSTALL PROMPT (Android Chrome)
+// ════════════════════════════════════
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  // Show install banner after splash button appears
+  setTimeout(showInstallBanner, 500);
+});
+
+function showInstallBanner() {
+  if (!deferredInstallPrompt) return;
+  const banner = document.getElementById('installBanner');
+  if (banner) banner.style.display = 'flex';
+}
+
+function installApp() {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then(() => {
+    deferredInstallPrompt = null;
+    const banner = document.getElementById('installBanner');
+    if (banner) banner.style.display = 'none';
+  });
+}
+
+function dismissInstall() {
+  const banner = document.getElementById('installBanner');
+  if (banner) banner.style.display = 'none';
+}
+
+window.addEventListener('appinstalled', () => {
+  const banner = document.getElementById('installBanner');
+  if (banner) banner.style.display = 'none';
+});
+</script>
+</body>
+</html>
