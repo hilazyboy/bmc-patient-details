@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-07-07T20:32:42.922Z",
+  "exportedAt": "2026-07-07T20:43:23.334Z",
   "rooms": {
     "BMC": {
       "Zone A": {
@@ -392,7 +392,7 @@
           "D407",
           "D408",
           "D409",
-          "iso"
+          "ISO"
         ],
         "5th Floor": [
           "D501",
@@ -414,8 +414,7 @@
           "D606",
           "D607",
           "D608",
-          "D609",
-          "iso"
+          "D ISO"
         ],
         "7th Floor": [
           "D701",
@@ -579,24 +578,9 @@
   "patients": {
     "BMC|Zone D|4th Floor|D401": "M",
     "BMC|Zone D|4th Floor|D402": "F",
+    "BMC|Zone D|4th Floor|D403": "PF",
     "BMC|Zone D|4th Floor|D404": "VIPF",
-    "BMC|Zone D|4th Floor|D405": "PM",
-    "BMC|Zone D|4th Floor|D406": "VVIPF",
-    "BMC|Zone D|6th Floor|D601": "F",
-    "BMC|Zone D|6th Floor|D602": "F",
-    "BMC|Zone D|6th Floor|D603": "F",
-    "BMC|Zone D|6th Floor|D604": "PM",
-    "BMC|Zone D|6th Floor|D605": "F",
-    "BMC|Zone D|6th Floor|D606": "F",
-    "BMC|Zone D|6th Floor|D607": "M",
-    "BMC|Zone D|6th Floor|D608": "M",
-    "BMC|Zone D|6th Floor|D609": "F",
-    "BMC|Zone D|6th Floor|iso": "F",
-    "BMC|Zone D|4th Floor|D403": "V",
-    "BMC|Zone D|Basement|DB03": "PF",
-    "BMC|Zone D|Basement|DB05": "PM",
-    "BMC|Zone D|Basement|DB04": "PF",
-    "BMC|Zone D|4th Floor|D407": "MSNF"
+    "BMC|Zone D|4th Floor|D405": "VVIPF"
   },
   "notes": {}
 }
