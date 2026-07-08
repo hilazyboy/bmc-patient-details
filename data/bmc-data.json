@@ -1,5 +1,5 @@
 {
-  "exportedAt": "2026-07-07T20:54:14.938Z",
+  "exportedAt": "2026-07-08T03:24:00.411Z",
   "rooms": {
     "BMC": {
       "Zone A": {
@@ -403,7 +403,8 @@
           "D506",
           "D507",
           "D508",
-          "D ISO"
+          "D509",
+          "ISO"
         ],
         "6th Floor": [
           "D601",
@@ -580,7 +581,11 @@
     "BMC|Zone D|4th Floor|D402": "F",
     "BMC|Zone D|4th Floor|D403": "PF",
     "BMC|Zone D|4th Floor|D404": "VIPF",
-    "BMC|Zone D|4th Floor|D405": "VVIPF"
+    "BMC|Zone D|4th Floor|D405": "VIPF",
+    "BMC|Zone D|5th Floor|D501": "M",
+    "BMC|Zone D|5th Floor|D502": "V",
+    "BMC|Zone D|5th Floor|D503": "M",
+    "BMC|Zone D|5th Floor|D508": "M"
   },
   "notes": {}
 }
